@@ -9,16 +9,18 @@ data Op =
     Div deriving (Show)
 
 data Type =
-    None |
     Double Double |
     Int Integer |
+    None |
     String String
+    deriving (Show)
 
 data Expr =
     Float Double |
     BinOp Op Expr Expr |
     Var Name |
     Val Name Expr |
+    Type Type Expr |
     Call Name [Expr] |
     Func Name [Expr] Expr |
     Extern Name [Expr]
