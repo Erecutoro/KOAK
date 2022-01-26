@@ -10,16 +10,15 @@ data Op =
 
 data Type =
     Double Double |
+    Float Double |
     Int Integer |
     None |
     String String
     deriving (Show)
 
 data Expr =
-    Float Double |
     BinOp Op Expr Expr |
-    Var Name |
-    Val Name Expr |
+    Var Name Type |
     Type Type Expr |
     Call Name [Expr] |
     Func Name [Expr] Expr |
