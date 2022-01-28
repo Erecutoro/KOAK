@@ -6,21 +6,31 @@ data Op =
     Add |
     Sub |
     Mul |
-    Div deriving (Show)
-
-data Type =
-    Double Double |
-    Float Double |
-    Int Integer |
-    None |
-    String String
+    Div
     deriving (Show)
 
-data Expr =
-    BinOp Op Expr Expr |
+data Undetermined =
+    Empty
+    deriving (Show)
+
+data Deco =
+    None |
+    DecoType String |
+    Set [String]
+    deriving (Show)
+
+data Type =
+    Int Integer |
+    Double Double |
+    String String |
+    Custom
+    deriving (Show)
+
+data Expr a =
+    BinOp Op (Expr a) (Expr a) |
     Var Name Type |
-    Type Type Expr |
-    Call Name [Expr] |
-    Func Name [Expr] Expr |
-    Extern Name [Expr]
+    Type Type (Expr a) |
+    Call Name [Expr a] |
+    Func Name [Expr a] (Expr a) |
+    Extern Name [Expr a]
     deriving (Show)
