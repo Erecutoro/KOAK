@@ -132,3 +132,8 @@ parseTuple (Parser a) = Parser func where
 parseSpace :: Parser a -> Parser a
 parseSpace = func where
         func str = parseMany (parseAnyChar [' ', '\t']) *> str <* parseMany (parseAnyChar [' ', '\t'])
+
+---------------------------------------------Parser Koak------------------------------------------------
+
+parseStr :: Parser String
+parseStr = parseSome (parseAnyChar (['!' .. '/']  ++ ['0' .. '9'] ++ ['A'..'Z'] ++ ['a'..'z']))
