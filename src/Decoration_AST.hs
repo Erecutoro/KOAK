@@ -5,22 +5,16 @@
 -- Decoration_AST
 --
 
--- data SHORT = CHAR Char
---             | VSHORT Integer
+type INDENTIFIER = String
 
--- data INT = INTEGER Integer
---          | SHORT SHORT
+data TYPE =   Char Char 
+            | Short Integer 
+            | Int Integer 
+            | Long Integer 
+            | Double Double 
+            | Float Float 
+            deriving (Show)
 
-type NAME = String 
+type VARIABLE = (INDENTIFIER, TYPE)
 
-type WEIGHT = Integer
-
-data EXTENDED_TYPE a b = CHAR (WEIGHT, b) a
-                    | SHORT (WEIGHT, b) a 
-                    | INT (WEIGHT, b) a 
-                    | LONG (WEIGHT, b) a
-                    | DOUBLE (WEIGHT, b) a 
-                    | FLOAT (WEIGHT, b) a 
-                    | STRING (WEIGHT, b) a
-                    deriving (Show)
-
+type DIGIT_TYPE = [TYPE]
