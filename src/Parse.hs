@@ -10,6 +10,7 @@ module Parse where
 import Text.Read
 import Control.Applicative
 import GHC.Base (Float)
+import Data
 
 newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
@@ -135,5 +136,37 @@ parseSpace = func where
 
 ---------------------------------------------Parser Koak------------------------------------------------
 
-parseStr :: Parser String
-parseStr = parseSome (parseAnyChar (['!' .. '/']  ++ ['0' .. '9'] ++ ['A'..'Z'] ++ ['a'..'z']))
+parseAdd :: Parser Op
+parseAdd = pure Add <* parseChar '+'
+
+parseSub :: Parser Op
+parseSub = pure Sub <* parseChar '-'
+
+parseMul :: Parser Op
+parseMul = pure Mul <* parseChar '*'
+
+parseDiv :: Parser Op
+parseDiv = pure Div <* parseChar '/'
+
+parseOp :: Parser Op
+parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
+
+parseBinop :: Parser (Expr Undetermined)
+parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
+
+--parseVar :: Parser Var
+--parseVar = 
+
+parseExpr :: Parser (Expr Undetermined)
+parseExpr = parseBinop <|>
+
+parseArgend :: String -> String -> String -> Maybe (String, String)
+parseArgend [] c arg = Just (arg, c)
+parseArgend (a:as) (b:bs) arg
+            | a == b = parseArgend as bs (arg ++ [a])
+            | otherwise = Nothing
+
+parseArg :: String -> Parser String
+parseArg str = Parser func where
+    func [] = Nothing
+    func a = parseArgend str a []
