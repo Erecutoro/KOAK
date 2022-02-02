@@ -34,7 +34,10 @@ library
       src
   build-depends:
       base >=4.7 && <5
-    , llvm-hs >=9.0.1
+    , bytestring
+    , llvm-hs >=9.0.0
+    , llvm-hs-pure >=9.0
+    , mtl
   default-language: Haskell2010
 
 executable koak-exe
@@ -46,8 +49,11 @@ executable koak-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , koak
-    , llvm-hs >=9.0.1
+    , llvm-hs >=9.0.0
+    , llvm-hs-pure >=9.0
+    , mtl
   default-language: Haskell2010
 
 test-suite koak-test
@@ -60,6 +66,9 @@ test-suite koak-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , koak
-    , llvm-hs >=9.0.1
+    , llvm-hs >=9.0.0
+    , llvm-hs-pure >=9.0
+    , mtl
   default-language: Haskell2010
