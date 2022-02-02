@@ -15,6 +15,10 @@ data TYPE =   Char Char
             | Float Float 
             deriving (Show)
 
-type VARIABLE = (INDENTIFIER, TYPE)
 
-type DIGIT_TYPE = [TYPE]
+data VARIABLE =   Single (INDENTIFIER, TYPE) -- used for a variable
+                | Multiple [(INDENTIFIER, TYPE)] -- used for a function/for loop
+                | None -- just in case
+                deriving (Show)
+
+type DIGIT_TYPE = [TYPE] -- used for digits types in assignation or evalexpr
