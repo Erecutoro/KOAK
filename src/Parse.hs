@@ -136,6 +136,9 @@ parseSpace = func where
 
 ---------------------------------------------Parser Koak------------------------------------------------
 
+parseStr :: Parser String
+parseStr = parseSome (parseAnyChar ("\"\'" ++ ['*'..'Z'] ++ ['a'..'z']))
+
 parseAdd :: Parser Op
 parseAdd = pure Add <* parseChar '+'
 
@@ -152,13 +155,16 @@ parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 
 parseBinop :: Parser (Expr Undetermined)
-parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
+parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
 
---parseVar :: Parser Var
---parseVar = 
+parseName :: Parser Name
+parseName = Name <$> (parseChar '(') *> (parseStr <* parseChar ':')
+
+--parseVar :: Parser (Expr Undetermined)
+--parseVar = Var <$> parseName <*> parserType
 
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseBinop <|>
+parseExpr = parseBinop
 
 parseArgend :: String -> String -> String -> Maybe (String, String)
 parseArgend [] c arg = Just (arg, c)
