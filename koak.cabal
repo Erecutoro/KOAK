@@ -28,6 +28,7 @@ library
       Decoration
       Decoration_AST
       Eval
+      Data
       Lib
       Parse
   other-modules:
