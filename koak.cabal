@@ -25,6 +25,9 @@ source-repository head
 
 library
   exposed-modules:
+      Decoration
+      Decoration_AST
+      Eval
       Data
       Lib
       Parse
