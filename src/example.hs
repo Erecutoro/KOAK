@@ -27,3 +27,27 @@ var3 = Lit (D $ Types set) 10
 
 collapseType t (Lit (D (Types s)) n) | t `elem` set = Just (Lit (D $ Type t) n)
                                        | otherwise = Nothing
+collapseType a b = Nothing 
+
+
+
+------------------------------------------------------------
+
+-- 0
+
+-- def coucou 
+-- 1
+--     var J
+--     for a
+--     2
+--         VAR I
+
+-- // return
+
+--     for b
+--     2
+--         I
+
+-- a (Def exprs):xs n ctx = a exprs (n+1) ctx, a xs n ctx
+-- a (For exprs):xs n ctx = a exprs (n+1) ctx, a xs n ctx
+-- a (var s t):xs n ctx = a xs n (prepend_ctx ctx s t)

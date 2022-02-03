@@ -7,12 +7,12 @@
 
 type INDENTIFIER = String
 
-data TYPE =   Char Char 
-            | Short Integer 
-            | Int Integer 
-            | Long Integer 
-            | Double Double 
-            | Float Float 
+data TYPE =   Char 
+            | Short  
+            | Int  
+            | Long  
+            | Double  
+            | Float 
             deriving (Show)
 
 
