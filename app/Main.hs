@@ -1,39 +1,26 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
 import System.IO
 import System.Environment
 import System.Exit
 
-import LLVM.AST
-import qualified LLVM.AST as AST
-import LLVM.AST.Global
+import LLVM.AST as AST
 import LLVM.Context
 import LLVM.Module
 
-import Control.Monad.Except
+import Data.ByteString.Short
 import Data.ByteString.Char8 as BS
 
-import Parse
-import Data.ByteString.Short
+import ParseLLVM
 
-int :: Type
+int :: AST.Type
 int = IntegerType 32
 
 toLLVM :: [Definition] -> AST.Module
 toLLVM def = defaultModule
-      { moduleName = "basic"
+      { moduleName = toShort $ BS.pack "basic"
       , moduleDefinitions = def
       }
-
-parseFunc :: String -> Definition
-parseFunc str = GlobalDefinition functionDefaults
-  {
-    name = Name $ toShort $ BS.pack $ fst fName
-  }
-  where
-    Just fName = runParser (parseSome ( parseAnyChar (['a'..'z'] ++ ['A'..'Z']))) str
 
 -- NEED [FUNCTION] HERE instead of String
 genFunc :: [String] -> [Definition]
@@ -42,10 +29,10 @@ genFunc [x] = [parseFunc x]
 genFunc (x:xs) = parseFunc x : genFunc xs
 
 parser :: String -> IO()
-parser str = withContext $ \context -> 
+parser str = withContext $ \context ->
     do
   llvm <- withModuleFromAST context (toLLVM $ genFunc [str]) moduleLLVMAssembly
-  BS.putStrLn llvm
+  BS.putStrLn llvm -- ast
 
 main :: IO()
 main = do

@@ -27,7 +27,9 @@ library
   exposed-modules:
       Data
       Lib
+      LLVMType
       Parse
+      ParseLLVM
   other-modules:
       Paths_koak
   hs-source-dirs:
