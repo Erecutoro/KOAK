@@ -137,7 +137,7 @@ parseSpace = func where
 ---------------------------------------------Parser Koak------------------------------------------------
 
 parseStr :: Parser String
-parseStr = parseSome (parseAnyChar ("\"\'" ++ ['*'..'Z'] ++ ['a'..'z']))
+parseStr = parseSome (parseAnyChar ("\"\'" ++ ['!' .. '@'] ++ ['A'..'Z'] ++ ['a'..'z']))
 
 parseAdd :: Parser Op
 parseAdd = pure Add <* parseChar '+'
@@ -154,17 +154,17 @@ parseDiv = pure Div <* parseChar '/'
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 
-parseBinop :: Parser (Expr Undetermined)
-parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
+--parseBinop :: Parser (Expr Undetermined)
+--parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
 
-parseName :: Parser Name
-parseName = Name <$> (parseChar '(') *> (parseStr <* parseChar ':')
+--parseName :: Parser Name
+--parseName = Name <$> (parseChar '(') *> (parseStr <* parseChar ':')
 
 --parseVar :: Parser (Expr Undetermined)
 --parseVar = Var <$> parseName <*> parserType
 
-parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseBinop
+--parseExpr :: Parser (Expr Undetermined)
+--parseExpr = parseBinop
 
 parseArgend :: String -> String -> String -> Maybe (String, String)
 parseArgend [] c arg = Just (arg, c)
@@ -176,3 +176,21 @@ parseArg :: String -> Parser String
 parseArg str = Parser func where
     func [] = Nothing
     func a = parseArgend str a []
+
+parseIni :: String -> (String,String)
+parseIni str = case runParser (parseArg "def ") str of
+                Nothing -> (str,[])
+                Just (a,b) -> parseFun b []
+
+parseFun :: String -> String -> (String, String)
+parseFun (a:as) str = case a == ')' of
+                    False -> parseFun as b
+                        where b = str ++ [a]
+                    True -> case parseFuntype as [] of
+                        (a,b) -> (str ++ [')'] ++ a, b)
+                    
+parseFuntype :: String -> String -> (String,String)
+parseFuntype (a:as) str = case a == ' ' of
+                            False -> parseFuntype as b
+                                where b = str ++ [a]
+                            True -> (str,as)
