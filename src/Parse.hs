@@ -10,6 +10,7 @@ module Parse where
 import Text.Read
 import Control.Applicative
 import GHC.Base (Float)
+import Data
 
 newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
@@ -132,3 +133,64 @@ parseTuple (Parser a) = Parser func where
 parseSpace :: Parser a -> Parser a
 parseSpace = func where
         func str = parseMany (parseAnyChar [' ', '\t']) *> str <* parseMany (parseAnyChar [' ', '\t'])
+
+---------------------------------------------Parser Koak------------------------------------------------
+
+parseStr :: Parser String
+parseStr = parseSome (parseAnyChar ("\"\'" ++ ['!' .. '@'] ++ ['A'..'Z'] ++ ['a'..'z']))
+
+parseAdd :: Parser Op
+parseAdd = pure Add <* parseChar '+'
+
+parseSub :: Parser Op
+parseSub = pure Sub <* parseChar '-'
+
+parseMul :: Parser Op
+parseMul = pure Mul <* parseChar '*'
+
+parseDiv :: Parser Op
+parseDiv = pure Div <* parseChar '/'
+
+parseOp :: Parser Op
+parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
+
+--parseBinop :: Parser (Expr Undetermined)
+--parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
+
+--parseName :: Parser Name
+--parseName = Name <$> (parseChar '(') *> (parseStr <* parseChar ':')
+
+--parseVar :: Parser (Expr Undetermined)
+--parseVar = Var <$> parseName <*> parserType
+
+--parseExpr :: Parser (Expr Undetermined)
+--parseExpr = parseBinop
+
+parseArgend :: String -> String -> String -> Maybe (String, String)
+parseArgend [] c arg = Just (arg, c)
+parseArgend (a:as) (b:bs) arg
+            | a == b = parseArgend as bs (arg ++ [a])
+            | otherwise = Nothing
+
+parseArg :: String -> Parser String
+parseArg str = Parser func where
+    func [] = Nothing
+    func a = parseArgend str a []
+
+parseIni :: String -> (String,String)
+parseIni str = case runParser (parseArg "def ") str of
+                Nothing -> (str,[])
+                Just (a,b) -> parseFun b []
+
+parseFun :: String -> String -> (String, String)
+parseFun (a:as) str = case a == ')' of
+                    False -> parseFun as b
+                        where b = str ++ [a]
+                    True -> case parseFuntype as [] of
+                        (a,b) -> (str ++ [')'] ++ a, b)
+                    
+parseFuntype :: String -> String -> (String,String)
+parseFuntype (a:as) str = case a == ' ' of
+                            False -> parseFuntype as b
+                                where b = str ++ [a]
+                            True -> (str,as)
