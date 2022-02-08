@@ -27,6 +27,8 @@ library
   exposed-modules:
       Data
       Lib
+      LLVM.LLVMType
+      LLVM.ParseLLVM
       LLVMType
       Parse
       ParseLLVM
