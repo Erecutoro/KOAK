@@ -28,20 +28,18 @@ genFunc [] = []
 genFunc [x] = [parseFunc x]
 genFunc (x:xs) = parseFunc x : genFunc xs
 
-parser :: String -> IO()
-parser str = withContext $ \context ->
-    do
-  llvm <- withModuleFromAST context (toLLVM $ genFunc [str]) moduleLLVMAssembly
-  BS.putStrLn llvm -- ast
+koak :: String -> IO ()
+koak str = withContext $ \context ->
+  do
+    llvm <- withModuleFromAST context (toLLVM $ genFunc [str]) moduleLLVMAssembly
+    BS.putStrLn llvm -- ast
 
 main :: IO()
 main = do
     args <- getArgs
     case args of
-      [fileName] -> System.IO.readFile fileName >>= parser
+      [fileName] -> System.IO.readFile fileName >>= koak
       _ -> exitWith $ ExitFailure 84
-
-
 
 ------------------------------ Example -----------------------------------------
 

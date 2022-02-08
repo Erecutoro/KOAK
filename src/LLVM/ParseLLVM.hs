@@ -5,7 +5,7 @@
 -- ParseLLVM
 --
 
-module ParseLLVM where
+module LLVM.ParseLLVM where
 
 import Parse
 import LLVMType
@@ -20,7 +20,7 @@ import Data.ByteString.Short
 
 getFuncArgsEnd :: String -> String
 getFuncArgsEnd [] = []
-getFuncArgsEnd (x:xs) = if x == ')'
+getFuncArgsEnd (x:xs) = if x == ')' && x /= ':'
                         then []
                         else x:getFuncArgsEnd xs
 
@@ -30,9 +30,22 @@ getFuncArgs (x:xs) = if x == '('
                  then getFuncArgsEnd xs
                  else getFuncArgs xs
 
+getAlpha :: String -> Maybe (String, String)
+getAlpha = runParser (parseSome (parseAnyChar (['a' .. 'z'] ++ ['A' .. 'Z'])))
+
+getVarName :: String -> (String, String)
+getVarName str@(x:xs) = case getAlpha str of
+              Just a -> a
+              Nothing -> ("", xs)
+
+getVarType :: (String, String) -> Maybe (String, String)
+getVarType name = if fst name /= "" && snd name /= [] && Prelude.head (snd name) == ':'
+              then getAlpha (Prelude.tail $ snd name)
+              else Just ("Unknow", "")
+
 parseArgs :: String -> [Parameter]
 parseArgs [] = []
-parseArgs str@(x:xs) = case varType of
+parseArgs str@(x:xs) = case getVarType name of
                        Just varType -> case fst varType of
                                       "int" -> Parameter int (Name $ toShort $ BS.pack $ fst name) [] : parseArgs (snd name)
                                       "double" -> Parameter LLVM.AST.Type.double (Name $ toShort $ BS.pack $ fst name) [] : parseArgs (snd name)
@@ -40,16 +53,28 @@ parseArgs str@(x:xs) = case varType of
                        Nothing -> []
                        -- THROW ERROR HERE ?
   where
-      Just name = runParser (parseSome (parseAnyChar (['a' .. 'z'] ++ ['A' .. 'Z']))) str
-      varType = if Prelude.head (snd name) == ':'
-                then runParser (parseSome (parseAnyChar (['a'..'z'] ++ ['A'..'Z']))) (Prelude.tail $ snd name)
-                else Just ("Error", "")
+    name = getVarName str
 
-parseFunc :: String -> Definition
-parseFunc str = GlobalDefinition functionDefaults
+getReturnType :: String -> Type
+getReturnType [] = int -- THROW ERROR HERE ?
+getReturnType (x:xs) = if x == ':'
+                       then 
+                          case fst test of
+                            "int" -> int
+                            "double" -> double
+                            _ -> int -- THROW ERROR HERE ?
+                       else getReturnType xs
+  where
+    test = case getAlpha xs of
+           Just a -> a
+           Nothing -> ("", "")
+
+parseFunc :: (String, String) -> Definition
+parseFunc (proto, func) = GlobalDefinition functionDefaults
   {
-    name = Name $ toShort $ BS.pack $ fst fName
-    , parameters = (parseArgs $ getFuncArgs str, False)
+    name = Name $ toShort $ BS.pack $ fst funcName
+    , parameters = (parseArgs $ getFuncArgs $ snd funcName, False)
+    , returnType = getReturnType $ snd funcName
   }
   where
-    Just fName = runParser (parseSome ( parseAnyChar (['a'..'z'] ++ ['A'..'Z']))) str
+    Just funcName = getAlpha proto

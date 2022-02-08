@@ -5,7 +5,7 @@
 -- LLVMType
 --
 
-module LLVMType where
+module LLVM.LLVMType where
 
 import LLVM.AST as AST
 
