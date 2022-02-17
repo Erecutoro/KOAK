@@ -5,9 +5,11 @@
 -- Decoration_AST
 --
 
+module Decoration_AST where
+
 type INDENTIFIER = String
 
-data TYPE =   Char 
+data EXT_TYPE =   Char 
             | Short  
             | Int  
             | Long  
@@ -16,9 +18,8 @@ data TYPE =   Char
             deriving (Show)
 
 
-data VARIABLE =   Single (INDENTIFIER, TYPE) -- used for a variable
-                | Multiple [(INDENTIFIER, TYPE)] -- used for a function/for loop
-                | None -- just in case
-                deriving (Show)
+newtype VARIABLE = Varinfo (INDENTIFIER, EXT_TYPE) 
 
-type DIGIT_TYPE = [TYPE] -- used for digits types in assignation or evalexpr
+newtype CONTEXT = Ctx [VARIABLE]
+
+type DIGIT_TYPE = [EXT_TYPE] -- used for digits types in assignation or evalexpr
