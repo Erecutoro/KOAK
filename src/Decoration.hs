@@ -29,4 +29,7 @@ decorate (Call name a)
 decorate (Func name a b)
    | True = decorateList a >>= (\ na -> decorate b >>= Right . Func name na)
    | otherwise = Left "Func error"
+decorate (Extern name a)
+   | True = decorateList a >>=  Right . Call name
+   | otherwise  = Left "Call error"
 --   | True = Right (BinOp op (decorate a) (decorate b))
