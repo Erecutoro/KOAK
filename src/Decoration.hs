@@ -15,4 +15,7 @@ decorate (Var name t a)
 decorate (BinOp op a b)
    | True = decorate a >>= (\na -> decorate b >>= Right . BinOp op na)
    | otherwise = Left "Binop Error"
+decorate (Type t a)
+   | True = decorate a >>= Right . Type t
+   | otherwise  = Left "Type error"
 --   | True = Right (BinOp op (decorate a) (decorate b))
