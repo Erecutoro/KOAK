@@ -16,7 +16,6 @@ newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
 }
 
-
 instance Applicative Parser where
     pure a = Parser $ \ str -> Just (a, str)
     p1 <*> p2 = Parser func where 
@@ -157,11 +156,17 @@ parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 --parseBinop :: Parser (Expr Undetermined)
 --parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
 
---parseName :: Parser Name
---parseName = Name <$> (parseChar '(') *> (parseStr <* parseChar ':')
+parseName :: Parser Name
+parseName = parseStr <* parseChar ':'
 
---parseVar :: Parser (Expr Undetermined)
---parseVar = Var <$> parseName <*> parserType
+parseType :: Parser Type
+parseType = parseChar ':' *> (Type <$> parseStype)
+
+parseStype :: Parser Type
+parseStype = (Int <$> parseArg "int") <|> (Double <$> parseArg "double") <|> (Str <$> parseArg "string") <|> (pure Custom)
+
+parseVar :: Parser (Expr Undetermined)
+parseVar = Var <$> parseName <*> parseType
 
 --parseExpr :: Parser (Expr Undetermined)
 --parseExpr = parseBinop
@@ -177,20 +182,20 @@ parseArg str = Parser func where
     func [] = Nothing
     func a = parseArgend str a []
 
-parseIni :: String -> (String,String)
-parseIni str = case runParser (parseArg "def ") str of
-                Nothing -> (str,[])
-                Just (a,b) -> parseFun b []
-
-parseFun :: String -> String -> (String, String)
-parseFun (a:as) str = case a == ')' of
-                    False -> parseFun as b
-                        where b = str ++ [a]
-                    True -> case parseFuntype as [] of
-                        (a,b) -> (str ++ [')'] ++ a, b)
-                    
-parseFuntype :: String -> String -> (String,String)
-parseFuntype (a:as) str = case a == ' ' of
-                            False -> parseFuntype as b
-                                where b = str ++ [a]
-                            True -> (str,as)
+--parseIni :: String -> (String,String)
+--parseIni str = case runParser (parseArg "def ") str of
+--                Nothing -> (str,[])
+--                Just (a,b) -> parseFun b []
+--
+--parseFun :: String -> String -> (String, String)
+--parseFun (a:as) str = case a == ')' of
+--                    False -> parseFun as b
+--                        where b = str ++ [a]
+--                    True -> case parseFuntype as [] of
+--                        (a,b) -> (str ++ [')'] ++ a, b)
+--                    
+--parseFuntype :: String -> String -> (String,String)
+--parseFuntype (a:as) str = case a == ' ' of
+--                            False -> parseFuntype as b
+--                                where b = str ++ [a]
+--                            True -> (str,as)
