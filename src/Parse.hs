@@ -159,14 +159,15 @@ parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
 parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
 
-parseSfunc :: Parser ([Expr Undetermined])
-parseSfunc = [(parseVar <* parseChar ',') <|> (parseVar <* parseChar ')'), parseSfunc]
+parseSfunc :: Parser [Expr Undetermined]
+parseSfunc = (\a -> [a]) <$> (parseVar <* parseChar ')')
+            <|> ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
 
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ')
 
 --parseCall :: Parser (Expr Undetermined)
---parseCall = Call <$> 
+--parseCall = Call <$>
 
 parseType :: Parser Type
 parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
