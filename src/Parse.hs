@@ -136,7 +136,7 @@ parseSpace = func where
 ---------------------------------------------Parser Koak------------------------------------------------
 
 parseStr :: Parser String
-parseStr = parseSome (parseAnyChar ("\"\'" ++ ['!' .. '@'] ++ ['A'..'Z'] ++ ['a'..'z']))
+parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
 
 parseAdd :: Parser Op
 parseAdd = pure Add <* parseChar '+'
@@ -153,17 +153,14 @@ parseDiv = pure Div <* parseChar '/'
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 
---parseBinop :: Parser (Expr Undetermined)
---parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <|> parseExpr
+parseBinop :: Parser (Expr Undetermined)
+parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
 
 parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
 
 parseType :: Parser Type
-parseType = parseChar ':' *> (Type <$> parseStype)
-
-parseStype :: Parser Type
-parseStype = (Int <$> parseArg "int") <|> (Double <$> parseArg "double") <|> (Str <$> parseArg "string") <|> (pure Custom)
+parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
 
 parseVar :: Parser (Expr Undetermined)
 parseVar = Var <$> parseName <*> parseType
