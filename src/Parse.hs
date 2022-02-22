@@ -160,10 +160,10 @@ parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
 
 parseSfunc :: Parser ([Expr Undetermined])
-parseSfunc = ((parseVar <* parseChar ',') <|> (parseVar <* parseChar ')'), parseSfunc)
+parseSfunc = [(parseVar <* parseChar ',') <|> (parseVar <* parseChar ')'), parseSfunc]
 
 parseFunc :: Parser (Expr Undetermined)
-parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> parseSfunc <*> parseExpr
+parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ')
 
 --parseCall :: Parser (Expr Undetermined)
 --parseCall = Call <$> 
