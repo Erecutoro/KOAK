@@ -29,7 +29,6 @@ data Type =
 data Expr a =
     BinOp (Expr a) Op (Expr a) |
     Var Name Type a |
-    Type Type (Expr a) |
     Call Name [Expr a] |
     Func Name [Expr a] (Expr a) |
     Extern Name [Expr a]
