@@ -163,7 +163,7 @@ parseType :: Parser Type
 parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
 
 parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseName <*> parseType
+parseVar = Var <$> parseName <*> parseType <*> pure Empty
 
 --parseExpr :: Parser (Expr Undetermined)
 --parseExpr = parseBinop
