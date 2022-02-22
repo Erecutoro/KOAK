@@ -159,9 +159,11 @@ parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
 parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
 
+------------------------------------------------------------
+
 parseSfunc :: Parser [Expr Undetermined]
-parseSfunc = (\a -> [a]) <$> (parseVar <* parseChar ')')
-            <|> ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
+parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
+            <|> (\a -> [a]) <$> (parseVar <* parseChar ')')
 
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ')
@@ -169,11 +171,25 @@ parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> pars
 --parseCall :: Parser (Expr Undetermined)
 --parseCall = Call <$>
 
+------------------------------------------------------------
+
 parseType :: Parser Type
 parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
 
 parseVar :: Parser (Expr Undetermined)
 parseVar = Var <$> parseName <*> parseType <*> pure Empty
+
+------------------------------------------------------------
+
+parseCall :: Parser (Expr Undetermined)
+parseCall = Call <$> parseName <* parseChar '(' <*> parseSfunc
+
+------------------------------------------------------------
+
+parseExtern :: Parser (Expr Undetermined)
+parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
+
+------------------------------------------------------------
 
 --parseExpr :: Parser (Expr Undetermined)
 --parseExpr = parseBinop
