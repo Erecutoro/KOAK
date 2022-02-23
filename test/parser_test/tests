@@ -1,9 +1,16 @@
 x:double
-5,0
+5.0
 5
 
 5 + 5
 y + 5
-y:double
+y = 5
+y:double --faux
+
+test(x)
+test(x:double) --faux
+test(x = 5) --faux
+test(5)
+test(y + 5, x) --avec autant de space que tu veux BrUh
 
 TODO

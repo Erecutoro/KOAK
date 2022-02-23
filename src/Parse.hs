@@ -139,7 +139,7 @@ parseStr :: Parser String
 parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
 
 parseNum :: Parser String
-parseNum = parseSome (parseAnyChar ("," ++ ['0'..'9']))
+parseNum = parseSome (parseAnyChar ("." ++ ['0'..'9']))
 
 ------------------------------------------------------------
 
@@ -154,11 +154,6 @@ parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseS
 
 parseExtern :: Parser (Expr Undetermined)
 parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
-
-------------------------------------------------------------
-
-parseCall :: Parser (Expr Undetermined)
-parseCall = Call <$> parseStr <* parseChar '(' <*> parseSfunc
 
 ------------------------------------------------------------
 
@@ -196,16 +191,16 @@ parseAdd :: Parser Op
 parseAdd = pure Add <* (parseSpace $parseChar '+')
 
 parseSub :: Parser Op
-parseSub = pure Sub <* parseChar '-'
+parseSub = pure Sub <* (parseSpace $parseChar '-')
 
 parseMul :: Parser Op
-parseMul = pure Mul <* parseChar '*'
+parseMul = pure Mul <* (parseSpace $parseChar '*')
 
 parseDiv :: Parser Op
-parseDiv = pure Div <* parseChar '/'
+parseDiv = pure Div <* (parseSpace $parseChar '/')
 
 parseEq :: Parser Op
-parseEq = pure Eq <* parseChar '='
+parseEq = pure Eq <* (parseSpace $parseChar '=')
 
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv <|> parseEq
@@ -215,5 +210,14 @@ parseBinOp = BinOp <$> parseVar <*> parseOp <*> parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 
+parseSubCall :: Parser [Expr Undetermined]
+parseSubCall = ((:) <$> (parseSpace parseExpr <* parseSpace (parseChar ',')) <*> parseSubCall)
+            <|> (\a -> [a]) <$> (parseSpace parseExpr <* parseSpace (parseChar ')'))
+
+parseCall :: Parser (Expr Undetermined)
+parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall
+
+------------------------------------------------------------
+
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseBinOp <|> parseVar
+parseExpr = parseCall <|> parseBinOp <|> parseVar
