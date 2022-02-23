@@ -141,6 +141,8 @@ parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
 parseNum :: Parser String
 parseNum = parseSome (parseAnyChar ("," ++ ['0'..'9']))
 
+------------------------------------------------------------
+
 parseAdd :: Parser Op
 parseAdd = pure Add <* parseChar '+'
 
@@ -159,6 +161,8 @@ parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 parseBinop :: Parser (Expr Undetermined)
 parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <*> pure Empty
 
+------------------------------------------------------------
+
 parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
 
@@ -170,9 +174,6 @@ parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
 
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ') <*> parseSfunc
-
---parseCall :: Parser (Expr Undetermined)
---parseCall = Call <$>
 
 ------------------------------------------------------------
 

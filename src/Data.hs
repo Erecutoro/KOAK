@@ -37,7 +37,7 @@ data Type =
     deriving (Show)
 
 data Expr a =
-    BinOp (Expr a) Op (Expr a) |
+    BinOp (Expr a) Op (Expr a) a|
     Var Name Val Type a |
     Call Name [Expr a] |
     Func Name [Expr a] Type [Expr a]|
