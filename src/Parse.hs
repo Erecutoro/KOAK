@@ -143,20 +143,6 @@ parseNum = parseSome (parseAnyChar ("." ++ ['0'..'9']))
 
 ------------------------------------------------------------
 
-parseSfunc :: Parser [Expr Undetermined]
-parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
-            <|> (\a -> [a]) <$> (parseVar <* parseChar ')')
-
-parseFunc :: Parser (Expr Undetermined)
-parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ') <*> parseSfunc
-
-------------------------------------------------------------
-
-parseExtern :: Parser (Expr Undetermined)
-parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
-
-------------------------------------------------------------
-
 parseArgend :: String -> String -> String -> Maybe (String, String)
 parseArgend [] c arg = Just (arg, c)
 parseArgend (a:as) (b:bs) arg
@@ -180,10 +166,10 @@ parseVal :: Parser Val
 parseVal = parseNum <|> parseNone
 
 parseName :: Parser Name
-parseName = parseStr <* parseChar ':' <|> parseStr <|> parseNone
+parseName = parseSpace parseStr <* parseChar ':' <|> parseStr <|> parseNone
 
 parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseName <*> parseVal <*> parseType <*> pure Empty
+parseVar = Var <$> parseSpace parseName <*> parseVal <*> parseSpace parseType <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -219,5 +205,16 @@ parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall
 
 ------------------------------------------------------------
 
+parseFunc :: Parser (Expr Undetermined)
+parseFunc = Func <$> (parseArg "def" *> parseSpace parseStr <* parseChar '(') <*> parseSubCall
+                    <*> (parseSpace (parseChar ':') *> parseType) <*> parseSpace parseExpr
+
+------------------------------------------------------------
+
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseCall <|> parseBinOp <|> parseVar
+parseExpr = parseFunc <|> parseCall <|> parseBinOp <|> parseVar
+
+------------------------------------------------------------
+
+--parseExtern :: Parser (Expr Undetermined)
+--parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc

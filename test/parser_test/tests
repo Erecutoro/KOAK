@@ -13,4 +13,9 @@ test(x = 5) --faux
 test(5)
 test(y + 5, x) --avec autant de space que tu veux BrUh
 
+-- je supporte pas les fonctions sur plusieurs lignes
+def test ( x : double ) : double x - 1.0
+def test ( x : double, y : int ) : double x +y - 1.0
+
 TODO
+--je sais pas comment on appelle des extern
