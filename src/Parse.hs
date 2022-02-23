@@ -158,13 +158,8 @@ parseDiv = pure Div <* parseChar '/'
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 
-parseBinop :: Parser (Expr Undetermined)
-parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <*> pure Empty
-
-------------------------------------------------------------
-
-parseName :: Parser Name
-parseName = parseStr <* parseChar ':'
+--parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <*> pure Empty
+--parseBinop :: Parser (Expr Undetermined)
 
 ------------------------------------------------------------
 
@@ -174,17 +169,6 @@ parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
 
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ') <*> parseSfunc
-
-------------------------------------------------------------
-
-parseType :: Parser Type
-parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
-
-parseVal :: Parser Val
-parseVal = parseNum
-
-parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseName <*> parseVal <*> parseType <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -198,9 +182,6 @@ parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
 
 ------------------------------------------------------------
 
---parseExpr :: Parser (Expr Undetermined)
---parseExpr = parseBinop
-
 parseArgend :: String -> String -> String -> Maybe (String, String)
 parseArgend [] c arg = Just (arg, c)
 parseArgend (a:as) (b:bs) arg
@@ -212,20 +193,19 @@ parseArg str = Parser func where
     func [] = Nothing
     func a = parseArgend str a []
 
---parseIni :: String -> (String,String)
---parseIni str = case runParser (parseArg "def ") str of
---                Nothing -> (str,[])
---                Just (a,b) -> parseFun b []
---
---parseFun :: String -> String -> (String, String)
---parseFun (a:as) str = case a == ')' of
---                    False -> parseFun as b
---                        where b = str ++ [a]
---                    True -> case parseFuntype as [] of
---                        (a,b) -> (str ++ [')'] ++ a, b)
---                    
---parseFuntype :: String -> String -> (String,String)
---parseFuntype (a:as) str = case a == ' ' of
---                            False -> parseFuntype as b
---                                where b = str ++ [a]
---                            True -> (str,as)
+------------------------------------------------------------
+
+parseType :: Parser Type
+parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
+
+parseNone :: Parser String
+parseNone = Parser func where func a = Just("none", a)
+
+parseVal :: Parser Val
+parseVal = parseNum <|> parseNone
+
+parseName :: Parser Name
+parseName = parseStr <* parseChar ':'
+
+parseVar :: Parser (Expr Undetermined)
+parseVar = Var <$> parseName <*> parseVal <*> parseType <*> pure Empty
