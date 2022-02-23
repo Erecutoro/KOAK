@@ -138,6 +138,9 @@ parseSpace = func where
 parseStr :: Parser String
 parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
 
+parseNum :: Parser String
+parseNum = parseSome (parseAnyChar ("," ++ ['0'..'9']))
+
 parseAdd :: Parser Op
 parseAdd = pure Add <* parseChar '+'
 
@@ -154,7 +157,7 @@ parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
 
 parseBinop :: Parser (Expr Undetermined)
-parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr
+parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <*> pure Empty
 
 parseName :: Parser Name
 parseName = parseStr <* parseChar ':'
@@ -166,7 +169,7 @@ parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
             <|> (\a -> [a]) <$> (parseVar <* parseChar ')')
 
 parseFunc :: Parser (Expr Undetermined)
-parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ')
+parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseSfunc <*> ((parseChar ':' *> parseType) <* parseChar ' ') <*> parseSfunc
 
 --parseCall :: Parser (Expr Undetermined)
 --parseCall = Call <$>
@@ -176,8 +179,11 @@ parseFunc = Func <$> (((parseArg "def ") *> parseStr) <* parseChar '(') <*> pars
 parseType :: Parser Type
 parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
 
+parseVal :: Parser Val
+parseVal = parseNum
+
 parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseName <*> parseType <*> pure Empty
+parseVar = Var <$> parseName <*> parseVal <*> parseType <*> pure Empty
 
 ------------------------------------------------------------
 

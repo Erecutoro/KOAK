@@ -40,7 +40,7 @@ data Expr a =
     BinOp (Expr a) Op (Expr a) |
     Var Name Val Type a |
     Call Name [Expr a] |
-    Func Name [Expr a] [Expr a] Type |
+    Func Name [Expr a] Type [Expr a]|
     Extern Name [Expr a] |
     State Statement (Expr a) Compare (Expr a) [Expr a]
     deriving (Show)
