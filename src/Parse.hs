@@ -143,26 +143,6 @@ parseNum = parseSome (parseAnyChar ("," ++ ['0'..'9']))
 
 ------------------------------------------------------------
 
-parseAdd :: Parser Op
-parseAdd = pure Add <* parseChar '+'
-
-parseSub :: Parser Op
-parseSub = pure Sub <* parseChar '-'
-
-parseMul :: Parser Op
-parseMul = pure Mul <* parseChar '*'
-
-parseDiv :: Parser Op
-parseDiv = pure Div <* parseChar '/'
-
-parseOp :: Parser Op
-parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv
-
---parseBinop = BinOp <$> parseExpr <*> parseOp <*> parseExpr <*> pure Empty
---parseBinop :: Parser (Expr Undetermined)
-
-------------------------------------------------------------
-
 parseSfunc :: Parser [Expr Undetermined]
 parseSfunc = ((:) <$> (parseVar <* parseChar ',') <*> parseSfunc)
             <|> (\a -> [a]) <$> (parseVar <* parseChar ')')
@@ -172,13 +152,13 @@ parseFunc = Func <$> ((parseArg "def " *> parseStr) <* parseChar '(') <*> parseS
 
 ------------------------------------------------------------
 
-parseCall :: Parser (Expr Undetermined)
-parseCall = Call <$> parseName <* parseChar '(' <*> parseSfunc
+parseExtern :: Parser (Expr Undetermined)
+parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
 
 ------------------------------------------------------------
 
-parseExtern :: Parser (Expr Undetermined)
-parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
+parseCall :: Parser (Expr Undetermined)
+parseCall = Call <$> parseStr <* parseChar '(' <*> parseSfunc
 
 ------------------------------------------------------------
 
@@ -205,7 +185,35 @@ parseVal :: Parser Val
 parseVal = parseNum <|> parseNone
 
 parseName :: Parser Name
-parseName = parseStr <* parseChar ':'
+parseName = parseStr <* parseChar ':' <|> parseStr <|> parseNone
 
 parseVar :: Parser (Expr Undetermined)
 parseVar = Var <$> parseName <*> parseVal <*> parseType <*> pure Empty
+
+------------------------------------------------------------
+
+parseAdd :: Parser Op
+parseAdd = pure Add <* (parseSpace $parseChar '+')
+
+parseSub :: Parser Op
+parseSub = pure Sub <* parseChar '-'
+
+parseMul :: Parser Op
+parseMul = pure Mul <* parseChar '*'
+
+parseDiv :: Parser Op
+parseDiv = pure Div <* parseChar '/'
+
+parseEq :: Parser Op
+parseEq = pure Eq <* parseChar '='
+
+parseOp :: Parser Op
+parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv <|> parseEq
+
+parseBinOp :: Parser (Expr Undetermined)
+parseBinOp = BinOp <$> parseVar <*> parseOp <*> parseExpr <*> pure Empty
+
+------------------------------------------------------------
+
+parseExpr :: Parser (Expr Undetermined)
+parseExpr = parseBinOp <|> parseVar
