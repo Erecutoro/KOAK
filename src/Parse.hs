@@ -174,25 +174,25 @@ parseVar = Var <$> parseSpace parseName <*> parseVal <*> parseSpace parseType <*
 ------------------------------------------------------------
 
 parseAdd :: Parser Op
-parseAdd = pure Add <* (parseSpace $parseChar '+')
+parseAdd = pure Add <* parseChar '+'
 
 parseSub :: Parser Op
-parseSub = pure Sub <* (parseSpace $parseChar '-')
+parseSub = pure Sub <* parseChar '-'
 
 parseMul :: Parser Op
-parseMul = pure Mul <* (parseSpace $parseChar '*')
+parseMul = pure Mul <* parseChar '*'
 
 parseDiv :: Parser Op
-parseDiv = pure Div <* (parseSpace $parseChar '/')
+parseDiv = pure Div <* parseChar '/'
 
 parseEq :: Parser Op
-parseEq = pure Eq <* (parseSpace $parseChar '=')
+parseEq = pure Eq <* parseChar '='
 
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv <|> parseEq
 
 parseBinOp :: Parser (Expr Undetermined)
-parseBinOp = BinOp <$> parseVar <*> parseOp <*> parseExpr <*> pure Empty
+parseBinOp = BinOp <$> pure Custom <*> parseVar <*> parseSpace parseOp <*> parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -201,13 +201,13 @@ parseSubCall = ((:) <$> (parseSpace parseExpr <* parseSpace (parseChar ',')) <*>
             <|> (\a -> [a]) <$> (parseSpace parseExpr <* parseSpace (parseChar ')'))
 
 parseCall :: Parser (Expr Undetermined)
-parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall
+parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall <*> pure Empty
 
 ------------------------------------------------------------
 
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> (parseArg "def" *> parseSpace parseStr <* parseChar '(') <*> parseSubCall
-                    <*> (parseSpace (parseChar ':') *> parseType) <*> parseSpace parseExpr
+                    <*> (parseSpace (parseChar ':') *> parseType) <*> parseSpace parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 

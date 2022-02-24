@@ -19,3 +19,9 @@ def test ( x : double, y : int ) : double x +y - 1.0
 
 TODO
 --je sais pas comment on appelle des extern
+
+appelParse :: String -> [(Expr Undetermined)]
+appelParse [] = []
+appelParse str = case runParser parseExpr str <* parseChar';' of
+                    Just(a,b) -> a : appelParse b
+                    Nothing -> []
