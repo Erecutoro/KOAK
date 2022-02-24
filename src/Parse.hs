@@ -206,13 +206,44 @@ parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall <*> pure Empty
 ------------------------------------------------------------
 
 parseFunc :: Parser (Expr Undetermined)
-parseFunc = Func <$> (parseArg "def" *> parseSpace parseStr <* parseChar '(') <*> parseSubCall
-                    <*> (parseSpace (parseChar ':') *> parseType) <*> parseSpace parseExpr <*> pure Empty
+parseFunc = Func <$> name <*> param <*> return_type <*> parseSpace parseExpr <*> pure Empty
+            where name = parseArg "def" *> parseSpace parseStr
+                  param = parseChar '(' *> parseSubCall
+                  return_type = parseSpace (parseChar ':') *> parseType
+
+------------------------------------------------------------
+
+parseSup :: Parser Compare
+parseSup = Sup <$ parseChar '>'
+
+parseInf :: Parser Compare
+parseInf = Inf <$ parseChar '<'
+
+parseEqual :: Parser Compare
+parseEqual = Equal <$ parseArg "=="
+
+parseSupEq :: Parser Compare
+parseSupEq = SupEq <$ parseArg ">="
+
+parseInfEq :: Parser Compare
+parseInfEq = InfEq  <$ parseArg "<="
+
+parseCompare :: Parser Compare
+parseCompare = parseSup <|> parseInf <|> parseEqual <|> parseSupEq <|> parseInfEq
+
+parseStatement :: Parser Statement
+parseStatement = While <$ parseArg "while"
+
+parseState :: Parser (Expr Undetermined)
+parseState = State <$> parseStatement <*> parseSpace parseExpr <*> condition <*> parseSpace parseExpr
+                   <*> body <*> pure Empty
+             where condition = parseCompare
+                   body = parseArg "do" *> parseSpace parseExpr
 
 ------------------------------------------------------------
 
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseFunc <|> parseCall <|> parseBinOp <|> parseVar
+parseExpr = parseState <|> parseFunc <|> parseCall <|> parseBinOp <|> parseVar
 
 ------------------------------------------------------------
 

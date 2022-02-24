@@ -38,7 +38,7 @@ data Type =
 
 data Expr a =
     Var Name Val Type a |
-    BinOp Type (Expr a) Op (Expr a) a|
+    BinOp Type (Expr a) Op (Expr a) a |
     Call Name [Expr a] a |
     Func Name [Expr a] Type (Expr a) a | --ne supporte pas les fontions sur plusieurs ligne
     State Statement (Expr a) Compare (Expr a) (Expr a) a -- pour l'instant if et for ne sont pas prévu
