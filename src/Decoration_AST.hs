@@ -10,17 +10,16 @@ module Decoration_AST where
 type INDENTIFIER = String
 
 data EXT_TYPE =   Char 
-            | Short  
+            -- | Short  
             | Integer  
-            | Long  
+            -- | Long  
             | Double  
-            | Float 
             deriving (Show)
 
 type Error = String
 
 newtype VARIABLE = Varinfo (INDENTIFIER, EXT_TYPE) 
 
-newtype CONTEXT = Ctx ([VARIABLE], [EXT_TYPE])
+newtype CONTEXT = Ctx [VARIABLE]
 
 type DIGIT_TYPE = [EXT_TYPE] -- used for digits types in assignation or evalexpr
