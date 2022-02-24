@@ -6,10 +6,7 @@
 --
 
 module LLVM.ParseLLVM where
-
-import Parse
 import LLVMType
-
 import LLVM.AST as AST
 import LLVM.AST.Type
 import LLVM.AST.Global
@@ -17,6 +14,8 @@ import LLVM.AST.Global
 import Data.ByteString.Char8 as BS
 import Data.ByteString.Short
 
+import Parse
+import LLVM.GenCode
 
 getFuncArgsEnd :: String -> String
 getFuncArgsEnd [] = []
@@ -72,9 +71,11 @@ getReturnType (x:xs) = if x == ':'
 parseFunc :: (String, String) -> Definition
 parseFunc (proto, func) = GlobalDefinition functionDefaults
   {
-    name = Name $ toShort $ BS.pack $ fst funcName
+    name = Name fName
     , parameters = (parseArgs $ getFuncArgs $ snd funcName, False)
     , returnType = getReturnType $ snd funcName
+    , basicBlocks = [genBlocks func fName]
   }
   where
     Just funcName = getAlpha proto
+    fName = toShort $ BS.pack $ fst funcName

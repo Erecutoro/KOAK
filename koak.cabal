@@ -27,11 +27,12 @@ library
   exposed-modules:
       Data
       Lib
+      LLVM.GenCode
+      LLVM.Jit
       LLVM.LLVMType
       LLVM.ParseLLVM
       LLVMType
       Parse
-      ParseLLVM
   other-modules:
       Paths_koak
   hs-source-dirs:
