@@ -1,0 +1,33 @@
+x:double
+5.0
+5
+
+5 + 5
+y + 5
+y = 5
+y:double --faux
+
+test(x)
+test(x:double) --faux
+test(x = 5) --faux
+test(5)
+test(y + 5, x) --avec autant de space que tu veux BrUh
+
+-- je supporte pas les fonctions sur plusieurs lignes
+def test ( x : double ) : double x - 1.0
+def test ( x : double, y : int ) : double x +y - 1.0
+
+while y < 10 do y = y * 2
+
+--je sais pas comment on appelle des extern
+
+--appelParse :: String -> [(Expr Undetermined)]
+--appelParse [] = []
+--appelParse str = case runParser parseExpr str <* parseChar';' of
+--                    Just(a,b) -> a : appelParse b
+--                    Nothing -> []
+
+TODO
+    -faire un main qui gère les param
+    -faire un check files
+    -faire une fonction qui envoye le file en [String] à callParser et récup [Expr Undertermined] et l'envoyé à chauvax
