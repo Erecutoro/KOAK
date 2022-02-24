@@ -247,5 +247,14 @@ parseExpr = parseState <|> parseFunc <|> parseCall <|> parseBinOp <|> parseVar
 
 ------------------------------------------------------------
 
+--abandonned
 --parseExtern :: Parser (Expr Undetermined)
 --parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
+
+------------------------------------------------------------
+
+callParser :: [String] -> [Expr Undetermined]
+callParser [] = []
+callParser (x:xs) = case runParser (parseExpr <* parseChar ';') x of
+                        Just (a,_) -> a : callParser xs
+                        Nothing -> []
