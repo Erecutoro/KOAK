@@ -8,37 +8,38 @@
 import Data
 import Decoration_AST
 
--- decorateList :: [Expr Undetermined] -> Either Error [Expr CONTEXT]
--- decorateList [] = Right []
--- decorateList (a:as) = decorate a >>= (\ na -> decorateList as >>= Right . (na:))
+decorateList :: [Expr CONTEXT ] -> Either Error [Expr CONTEXT]
+decorateList [] = Right []
+decorateList (a:as) = decorate a >>= (\ na -> decorateList as >>= Right . (na:))
 
--- decorate :: Expr CONTEXT -> Either Error (Expr CONTEXT)
--- decorate (Var name t a)
---    | True = Right (Var name t (Ctx [Varinfo (name, Decoration_AST.Double )]))
---    | otherwise  = Left "Var Error"
--- decorate (BinOp a op b)
---    | True = decorate a >>= (\na -> decorate b >>= Right . BinOp na op)
---    | otherwise = Left "Binop Error"
--- decorate (Call name a)
---    | True = decorateList a >>=  Right . Call name
---    | otherwise  = Left "Call error"
--- decorate (Func name a t)
---    | True = decorateList a >>= (\ na -> Right (Func name na t))
---    | otherwise = Left "Func error"
--- decorate (Extern name a)
---    | True = decorateList a >>=  Right . Call name
---    | otherwise  = Left "Call error"
+decorate :: Expr CONTEXT -> Either Error (Expr CONTEXT)
+decorate (Var name v t ctx)
+   | True = Right (Var name v t ctx)
+   | otherwise  = Left "Var Error"
+decorate (BinOp t a op b ctx)
+   | True = decorate a >>= (\na -> decorate b >>= (\nb -> Right (BinOp t na op nb ctx)))
+   | otherwise = Left "Binop Error"
+decorate (Call name a ctx)
+   | True = decorateList a >>= (\na -> Right (Call name na ctx))
+   | otherwise  = Left "Call error"
+decorate (Func name a t b ctx)
+   | True = decorateList a >>= (\ na -> Right (Func name na t b ctx))
+   | otherwise = Left "Func error"
+decorate (State statement a cmp b c ctx)
+   | True = Right (State statement a cmp b c ctx)
+   | otherwise = Left "Statement error"
 
--- decorate :: Expr Undetermined -> Either Error (Expr CONTEXT, CONTEXT)
--- decorate (Var name t a)
--- 
--- getContext :: Expr CONTEXT -> CONTEXT 
--- getContext (Var _ _ a) = a
--- getContext (BinOp _ _ _)
--- 
+getContext :: Expr CONTEXT -> CONTEXT 
+getContext (Var _ _ _ a) = a
+getContext (BinOp _ _ _ _ a) = a
+getContext (Call _ _ a) = a
+getContext (Func _ _ _ _ a) = a
+getContext (State _ _ _ _ _ a) = a
+
 startDecoration :: [Expr a] -> CONTEXT -> Either Error [Expr CONTEXT]
-startDecoration (a:as) ctx = case decorate (a ctx) of
-                                    Left x -> Left x
-                                    Right (e) -> case startDecoration as y of
-                                                            Left x -> Left x
-                                                            Right x -> Right ((expr y) ++ x)
+startDecoration (a:as) ctx = 
+    case decorate (a ctx) of
+        Left x -> Left x
+        Right e -> case startDecoration as y of
+            Left x -> Left x
+            Right x -> Right ((expr y) ++ x)
