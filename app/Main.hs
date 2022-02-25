@@ -15,13 +15,10 @@ main = do
     print commands
 
 callRidwhite :: [String] -> [String]
-callRidWhite _ = []
-callRidwhite (a:as) = ridLine (ridWhitespace a) : callRidWhite as
+callRidwhite = map (ridLine . ridWhitespace)
 
 ridWhitespace :: String -> String
-ridWhitespace [] = []
-ridWhitespace file = filter (\xs -> (xs /=' ')) file
+ridWhitespace = filter (\xs -> (xs /=' '))
 
 ridLine :: String -> String
-ridLine [] = []
-ridLine file = filter (\xs -> (xs /='\n')) file
+ridLine = filter (\xs -> (xs /='\n'))
