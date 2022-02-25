@@ -10,11 +10,11 @@ module Parse where
 import Text.Read
 import Control.Applicative
 import GHC.Base (Float)
+import Data
 
 newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
 }
-
 
 instance Applicative Parser where
     pure a = Parser $ \ str -> Just (a, str)
@@ -132,3 +132,129 @@ parseTuple (Parser a) = Parser func where
 parseSpace :: Parser a -> Parser a
 parseSpace = func where
         func str = parseMany (parseAnyChar [' ', '\t']) *> str <* parseMany (parseAnyChar [' ', '\t'])
+
+---------------------------------------------Parser Koak------------------------------------------------
+
+parseStr :: Parser String
+parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
+
+parseNum :: Parser String
+parseNum = parseSome (parseAnyChar ("." ++ ['0'..'9']))
+
+------------------------------------------------------------
+
+parseArgend :: String -> String -> String -> Maybe (String, String)
+parseArgend [] c arg = Just (arg, c)
+parseArgend (a:as) (b:bs) arg
+            | a == b = parseArgend as bs (arg ++ [a])
+            | otherwise = Nothing
+
+parseArg :: String -> Parser String
+parseArg str = Parser func where
+    func [] = Nothing
+    func a = parseArgend str a []
+
+------------------------------------------------------------
+
+parseType :: Parser Type
+parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") <|> (pure Str <* parseArg "string") <|> (pure Custom)
+
+parseNone :: Parser String
+parseNone = Parser func where func a = Just("none", a)
+
+parseVal :: Parser Val
+parseVal = parseNum <|> parseNone
+
+parseName :: Parser Name
+parseName = parseSpace parseStr <* parseChar ':' <|> parseStr <|> parseNone
+
+parseVar :: Parser (Expr Undetermined)
+parseVar = Var <$> parseSpace parseName <*> parseVal <*> parseSpace parseType <*> pure Empty
+
+------------------------------------------------------------
+
+parseAdd :: Parser Op
+parseAdd = pure Add <* parseChar '+'
+
+parseSub :: Parser Op
+parseSub = pure Sub <* parseChar '-'
+
+parseMul :: Parser Op
+parseMul = pure Mul <* parseChar '*'
+
+parseDiv :: Parser Op
+parseDiv = pure Div <* parseChar '/'
+
+parseEq :: Parser Op
+parseEq = pure Eq <* parseChar '='
+
+parseOp :: Parser Op
+parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv <|> parseEq
+
+parseBinOp :: Parser (Expr Undetermined)
+parseBinOp = BinOp <$> pure Custom <*> parseVar <*> parseSpace parseOp <*> parseExpr <*> pure Empty
+
+------------------------------------------------------------
+
+parseSubCall :: Parser [Expr Undetermined]
+parseSubCall = ((:) <$> (parseSpace parseExpr <* parseSpace (parseChar ',')) <*> parseSubCall)
+            <|> (\a -> [a]) <$> (parseSpace parseExpr <* parseSpace (parseChar ')'))
+
+parseCall :: Parser (Expr Undetermined)
+parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall <*> pure Empty
+
+------------------------------------------------------------
+
+parseFunc :: Parser (Expr Undetermined)
+parseFunc = Func <$> name <*> param <*> return_type <*> parseSpace parseExpr <*> pure Empty
+            where name = parseArg "def" *> parseSpace parseStr
+                  param = parseChar '(' *> parseSubCall
+                  return_type = parseSpace (parseChar ':') *> parseType
+
+------------------------------------------------------------
+
+parseSup :: Parser Compare
+parseSup = Sup <$ parseChar '>'
+
+parseInf :: Parser Compare
+parseInf = Inf <$ parseChar '<'
+
+parseEqual :: Parser Compare
+parseEqual = Equal <$ parseArg "=="
+
+parseSupEq :: Parser Compare
+parseSupEq = SupEq <$ parseArg ">="
+
+parseInfEq :: Parser Compare
+parseInfEq = InfEq  <$ parseArg "<="
+
+parseCompare :: Parser Compare
+parseCompare = parseSup <|> parseInf <|> parseEqual <|> parseSupEq <|> parseInfEq
+
+parseStatement :: Parser Statement
+parseStatement = While <$ parseArg "while"
+
+parseState :: Parser (Expr Undetermined)
+parseState = State <$> parseStatement <*> parseSpace parseExpr <*> condition <*> parseSpace parseExpr
+                   <*> body <*> pure Empty
+             where condition = parseCompare
+                   body = parseArg "do" *> parseSpace parseExpr
+
+------------------------------------------------------------
+
+parseExpr :: Parser (Expr Undetermined)
+parseExpr = parseState <|> parseFunc <|> parseCall <|> parseBinOp <|> parseVar
+
+------------------------------------------------------------
+
+--abandonned
+--parseExtern :: Parser (Expr Undetermined)
+--parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
+
+------------------------------------------------------------
+
+callParser :: [String] -> [Expr Undetermined]
+callParser [] = []
+callParser (x:xs) = case runParser (parseExpr <* parseChar ';') x of
+                        Just (a,_) -> a : callParser xs
+                        Nothing -> []
