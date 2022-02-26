@@ -4,13 +4,14 @@ import System.Exit
 import System.IO
 import System.Environment
 import Parse
+import Data
 import Decoration
 
 main :: IO ()
 main = do
     args <- getArgs
     files <- mapM readFile args
-    let commands = mySplit files
+    let commands = callParser (mySplit files)
     print files
     print commands
 
@@ -22,4 +23,4 @@ myDelim (a:as)
 
 mySplit :: [String] -> [String]
 mySplit [] = []
-mySplit (a:as) = (myDelim a) ++ (mySplit as) 
+mySplit (a:as) = (myDelim a) ++ (mySplit as)
