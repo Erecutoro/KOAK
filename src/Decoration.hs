@@ -5,41 +5,55 @@
 -- Decoration
 --
 
+module Decoration where
+
 import Data
 import Decoration_AST
+import Parse
 
-decorateList :: [Expr CONTEXT ] -> Either Error [Expr CONTEXT]
-decorateList [] = Right []
-decorateList (a:as) = decorate a >>= (\ na -> decorateList as >>= Right . (na:))
 
-decorate :: Expr CONTEXT -> Either Error (Expr CONTEXT)
-decorate (Var name v t ctx)
-   | True = Right (Var name v t ctx)
-   | otherwise  = Left "Var Error"
-decorate (BinOp t a op b ctx)
-   | True = decorate a >>= (\na -> decorate b >>= (\nb -> Right (BinOp t na op nb ctx)))
-   | otherwise = Left "Binop Error"
-decorate (Call name a ctx)
-   | True = decorateList a >>= (\na -> Right (Call name na ctx))
-   | otherwise  = Left "Call error"
-decorate (Func name a t b ctx)
-   | True = decorateList a >>= (\ na -> Right (Func name na t b ctx))
-   | otherwise = Left "Func error"
-decorate (State statement a cmp b c ctx)
-   | True = Right (State statement a cmp b c ctx)
-   | otherwise = Left "Statement error"
+decorateList :: [Expr Undetermined ] -> SymbolTable -> Either Error [Expr Ctx]
+decorateList [] _ = Right []
+decorateList (a:as) st = decorate a st >>= (\ na -> decorateList as st >>= Right . (na:))
 
-getContext :: Expr CONTEXT -> CONTEXT 
-getContext (Var _ _ _ a) = a
-getContext (BinOp _ _ _ _ a) = a
-getContext (Call _ _ a) = a
-getContext (Func _ _ _ _ a) = a
-getContext (State _ _ _ _ _ a) = a
+decorate :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
+decorate (Var name v t _) st
+        | True = Right (Var name v t (VarCtx [Decoration_AST.Double]))
+        | otherwise = Left "Var Error" 
+decorate (BinOp _ a op b _) st
+        | True = decorate a st >>= \na -> decorate b st >>= \nb ->Right (BinOp Data.Double na op nb (BinOpCtx [Decoration_AST.Double] [Decoration_AST.Double] [Decoration_AST.Double]))
+        | otherwise = Left "Binop"
+decorate (Call name a _) st
+        | True = decorateList a st >>= \na -> Right (Call name na CallCtx )
+        | otherwise = Left "Call"
+decorate (Func name a t b _) st
+        | True = decorateList a st >>= \na -> decorate b st >>= \nb -> Right (Func name na t nb FuncCtx)
+        | otherwise = Left "Func"
+decorate (State s a cmp b c _) st
+        | True = decorate a st >>= \na -> decorate b st >>= \nb -> decorate c st >>= \nc -> Right (State s na cmp nb nc StateCtx)
+        | otherwise = Left "State"
 
-startDecoration :: [Expr a] -> CONTEXT -> Either Error [Expr CONTEXT]
-startDecoration (a:as) ctx = 
-    case decorate (a ctx) of
+getArgument :: [Expr Ctx] -> Either Error [EXT_TYPE ]
+getArgument ((Var _ _ t _):as) = case getArgument as of
+    Left a -> Left a
+    Right b -> Right (Decoration_AST.Double :b)
+getArgument (_:as) = Left "Argument Error"
+getArgument [] = Right []
+
+setSymbolTable :: Expr Ctx -> SymbolTable -> Either Error SymbolTable 
+setSymbolTable (Func name args t _ _) (SymTab st ) = case getArgument args of
+    Right a -> Right (SymTab (Varinfo (name, FuncInfo Decoration_AST.Double a) : st)) 
+    Left a -> Left a
+setSymbolTable (BinOp t (Var name none Custom _) Eq _ _) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo Decoration_AST.Double): st) )
+setSymbolTable _ st = Right st
+
+startDecoration :: [Expr Undetermined] -> SymbolTable  -> Either Error [Expr Ctx]
+startDecoration (a:as) st = 
+    case decorate a st of
         Left x -> Left x
-        Right e -> case startDecoration as y of
-            Left x -> Left x
-            Right x -> Right ((expr y) ++ x)
+        Right e -> case setSymbolTable e st of
+            Left err -> Left err
+            Right nst -> case startDecoration as nst of
+                Left errst -> Left errst
+                Right x -> Right (e:x)
+startDecoration [] st = Right []

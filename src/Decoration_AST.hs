@@ -9,17 +9,26 @@ module Decoration_AST where
 
 type INDENTIFIER = String
 
+type Error = String
+
 data EXT_TYPE =   Char 
-            -- | Short  
+            | Short
             | Integer  
-            -- | Long  
+            | Long
             | Double  
             deriving (Show)
 
-type Error = String
+data SymbolInfo = BinOpInfo EXT_TYPE
+                | FuncInfo EXT_TYPE [EXT_TYPE]
+                deriving (Show)
 
-newtype VARIABLE = Varinfo (INDENTIFIER, EXT_TYPE) 
+newtype Variable = Varinfo (INDENTIFIER, SymbolInfo) 
 
-newtype CONTEXT = Ctx [VARIABLE]
+newtype SymbolTable = SymTab [Variable]
 
-type DIGIT_TYPE = [EXT_TYPE] -- used for digits types in assignation or evalexpr
+data Ctx = VarCtx [EXT_TYPE]
+        | BinOpCtx [EXT_TYPE] [EXT_TYPE] [EXT_TYPE]
+        | CallCtx
+        | FuncCtx
+        | StateCtx
+        deriving (Show)
