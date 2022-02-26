@@ -10,15 +10,16 @@ main :: IO ()
 main = do
     args <- getArgs
     files <- mapM readFile args
-    let commands = callRidwhite files
+    let commands = mySplit files
     print files
     print commands
 
-callRidwhite :: [String] -> [String]
-callRidwhite = map (ridLine . ridWhitespace)
+myDelim :: String -> [String]
+myDelim [] = []
+myDelim (a:as)
+    | a == '\n' = "" : myDelim as
+    | otherwise = (a : head (myDelim as)) : tail (myDelim as)
 
-ridWhitespace :: String -> String
-ridWhitespace = filter (\xs -> (xs /=' '))
-
-ridLine :: String -> String
-ridLine = filter (\xs -> (xs /='\n'))
+mySplit :: [String] -> [String]
+mySplit [] = []
+mySplit (a:as) = (myDelim a) ++ (mySplit as) 
