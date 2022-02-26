@@ -12,7 +12,6 @@ main = do
     args <- getArgs
     files <- mapM readFile args
     let commands = callParser (mySplit files)
-    print files
     print commands
 
 myDelim :: String -> [String]
