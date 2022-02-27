@@ -26,7 +26,9 @@ source-repository head
 library
   exposed-modules:
       Data
-      Lib
+      Decoration
+      Decoration_AST
+      Koak
       LLVM.GenCode
       LLVM.Jit
       LLVM.LLVMType

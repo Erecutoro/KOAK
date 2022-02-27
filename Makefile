@@ -11,7 +11,7 @@ NAME = koak
 
 MAIN    := app/Main.hs
 
-SRC        := src/Lib.hs
+SRC     := src/Data.hs
 
 TESTSRC := test/Spec.hs
 
@@ -22,6 +22,8 @@ OBJ += $(TESTSRC:.hs=.o) $(TESTSRC:.hs=.hi)
 
 all: $(SRC) $(MAIN)
 	stack build
+
+
 	cp $(STACK_PATH)/bin/koak-exe ./$(NAME)
 
 tests_run:
