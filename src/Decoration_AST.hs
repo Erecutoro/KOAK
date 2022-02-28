@@ -28,7 +28,7 @@ newtype SymbolTable = SymTab [Variable]
 
 data Ctx = VarCtx [EXT_TYPE]
         | BinOpCtx [EXT_TYPE] [EXT_TYPE] [EXT_TYPE]
-        | CallCtx
+        | CallCtx EXT_TYPE
         | FuncCtx
         | StateCtx
         deriving (Show)
