@@ -8,6 +8,7 @@
 module Koak where
 
 import LLVM.AST as AST
+import LLVM.AST.Global
 import LLVM.Context
 import LLVM.Module
 
@@ -15,22 +16,37 @@ import Data.ByteString.Short
 import Data.ByteString.Char8 as BS
 
 import LLVM.ParseLLVM
+import LLVM.GenCode
+import Data
+import Decoration_AST
 
-toLLVM :: [Definition] -> AST.Module
--- toLLVM def = newModule
-toLLVM def = defaultModule
+genModule :: [Definition] -> AST.Module
+genModule def = defaultModule
       { moduleName = toShort $ BS.pack "basic"
       , moduleDefinitions = def
       }
 
-genFunc :: [(String, String)] -> [Definition]
-genFunc [] = []
-genFunc [x] = [LLVM.ParseLLVM.parseFunc x]
-genFunc (x:xs) = LLVM.ParseLLVM.parseFunc x : genFunc xs
-
-koak :: String -> IO ()
-koak str = withContext $ \context ->
-  withModuleFromAST context mod $ \mod ->
-      writeLLVMAssemblyToFile (File ".test.ll") mod
+initFunc :: Expr CONTEXT -> Definition
+initFunc expr = GlobalDefinition functionDefaults
+  {
+    name = Name $ toShort $ BS.pack n
+    , parameters = (parseArgs arg, False)
+    , returnType = getType ret
+    , basicBlocks = [genBlocks body (toShort $ BS.pack n)]
+  }
   where
-    mod = toLLVM $ genFunc [("add(a:double, b:int)", str)]
+    (n, arg, ret, body, ctx) = getFunc expr
+
+-- Remove all non func
+
+genFunc :: [Expr CONTEXT] -> [Definition]
+genFunc [] = []
+genFunc [x] = [initFunc x]
+genFunc (x:xs) = initFunc x : genFunc xs
+
+koak :: [Expr CONTEXT] -> IO ()
+koak expr = withContext $ \context ->
+  withModuleFromAST context mod $ \mod ->
+      writeLLVMAssemblyToFile (File "tmp.ll") mod
+  where
+    mod = genModule $ genFunc expr
