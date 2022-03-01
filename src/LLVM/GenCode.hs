@@ -51,20 +51,25 @@ genBinOp op a b = case op of
                   Data.Mul -> genMul a b
                   Data.Div -> genDiv a b
 
+--------------------------------------FUNC--------------------------------------
+
+genCall :: Data.Name -> [Expr a] -> Instruction
+genCall n arg = genAdd (Prelude.head arg) (Prelude.head arg)
+
 --------------------------------------GEN---------------------------------------
 
 tmp :: Instruction
 tmp = LLVM.AST.Add False False (LocalReference int (Name $ toShort $ BS.pack "null")) (LocalReference int (Name $ toShort $ BS.pack "null")) []
 
-eval :: Expr CONTEXT -> [Named Instruction]
+eval :: Expr CONTEXT -> Named Instruction
 eval ctx = case ctx of
-           BinOp t a op b _ -> case op of
-                               Data.Eq -> mkName n := genBinOp op a b : eval b
-                               _ -> mkName "none" := genBinOp op a b : eval b -- <- will throw 100%: redefinition of "none" variable
+           Data.BinOp t a op b _ -> case op of
+                               Data.Eq -> mkName n := genBinOp op a b
+                               _ -> mkName "none" := genBinOp op a b -- <- will throw 100%: redefinition of "none" variable
                                where
                                    (n, val, t, mv) = getVar a
-           _ -> [Name "none" := tmp]
-
+           Data.Call n arg t -> mkName n := genCall n arg
+           _ -> Name "none" := tmp
 
 genBlocks :: Expr CONTEXT -> ShortByteString -> BasicBlock
-genBlocks ctx name = BasicBlock (Name name) (eval ctx) (Do $ Ret (Just (LocalReference int (Name $ toShort $ BS.pack "a"))) [])
+genBlocks ctx name = BasicBlock (Name name) [eval ctx] (Do $ Ret (Just (LocalReference int (Name $ toShort $ BS.pack "a"))) [])
