@@ -30,9 +30,22 @@ typeToExttype Data.Double = Decoration_AST.Double
 typeToExttype Data.Int = Decoration_AST.Integer
 typeToExttype _ = Decoration_AST.Double 
 
+getType :: Expr Ctx -> Either Error EXT_TYPE 
+getType (Var _ _ t _) = Right (typeToExttype t)
+getType (BinOp t _ _ _ _) = Right (typeToExttype t)
+getType (Call _ _ (CallCtx a)) = Right a
+getType _ = Left ""
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+binOpTypage :: EXT_TYPE -> EXT_TYPE  -> EXT_TYPE 
+binOpTypage Decoration_AST.Integer Decoration_AST.Integer = Decoration_AST.Integer 
+binOpTypage Decoration_AST.Integer Decoration_AST.Double  = Decoration_AST.Double  
+binOpTypage Decoration_AST.Double  Decoration_AST.Integer = Decoration_AST.Double 
+binOpTypage Decoration_AST.Double  Decoration_AST.Double  = Decoration_AST.Double 
+binOpTypage _ _ = Decoration_AST.Double 
 
 decorateVar :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
 decorateVar (Var [] v t _) st = Right (Var [] v t (VarCtx [Decoration_AST.Double]))
