@@ -61,7 +61,7 @@ genCall n arg = genAdd (Prelude.head arg) (Prelude.head arg)
 tmp :: Instruction
 tmp = LLVM.AST.Add False False (LocalReference int (Name $ toShort $ BS.pack "null")) (LocalReference int (Name $ toShort $ BS.pack "null")) []
 
-eval :: Expr CONTEXT -> Named Instruction
+eval :: Expr Ctx -> Named Instruction
 eval ctx = case ctx of
            Data.BinOp t a op b _ -> case op of
                                Data.Eq -> mkName n := genBinOp op a b
@@ -71,5 +71,5 @@ eval ctx = case ctx of
            Data.Call n arg t -> mkName n := genCall n arg
            _ -> Name "none" := tmp
 
-genBlocks :: Expr CONTEXT -> ShortByteString -> BasicBlock
+genBlocks :: Expr Ctx -> ShortByteString -> BasicBlock
 genBlocks ctx name = BasicBlock (Name name) [eval ctx] (Do $ Ret (Just (LocalReference int (Name $ toShort $ BS.pack "a"))) [])

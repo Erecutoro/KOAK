@@ -26,7 +26,7 @@ genModule def = defaultModule
       , moduleDefinitions = def
       }
 
-initFunc :: Expr CONTEXT -> Definition
+initFunc :: Expr Ctx -> Definition
 initFunc expr = GlobalDefinition functionDefaults
   {
     name = Name $ toShort $ BS.pack n
@@ -39,12 +39,12 @@ initFunc expr = GlobalDefinition functionDefaults
 
 -- Remove all non func
 
-genFunc :: [Expr CONTEXT] -> [Definition]
+genFunc :: [Expr Ctx] -> [Definition]
 genFunc [] = []
 genFunc [x] = [initFunc x]
 genFunc (x:xs) = initFunc x : genFunc xs
 
-koak :: [Expr CONTEXT] -> IO ()
+koak :: [Expr Ctx] -> IO ()
 koak expr = withContext $ \context ->
   withModuleFromAST context mod $ \mod ->
       writeLLVMAssemblyToFile (File "tmp.ll") mod

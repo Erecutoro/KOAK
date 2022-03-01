@@ -32,6 +32,6 @@ getType t = case t of
                   Data.Double -> double
                   _ -> int
 
-getFunc :: Expr CONTEXT -> (Data.Name, [Expr CONTEXT], Data.Type, Expr CONTEXT, CONTEXT)
+getFunc :: Expr Ctx -> (Data.Name, [Expr Ctx], Data.Type, Expr Ctx, Ctx)
 getFunc expr = case expr of
                Func n arg ret body ctx -> (n, arg, ret, body, ctx)
