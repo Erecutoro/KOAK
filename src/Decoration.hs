@@ -61,7 +61,7 @@ setBinOpTypage :: Expr Ctx -> Expr Ctx -> Either Error EXT_TYPE
 setBinOpTypage a b = getType a >>= \na -> getType b >>= \nb -> binOpTypage na nb
 
 decorateVar :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
-decorateVar (Var "none" v t _) st = Right (Var [] v t (VarCtx Decoration_AST.Double))
+decorateVar (Var "none" v t _) st = Right (Var "none" v t (VarCtx Decoration_AST.Double))
 decorateVar (Var name v t _) st = case findSymbol name st of 
     Right FuncInfo {} -> Left "Var Error - function is not a type"
     Right BinOpInfo {} -> Right (Var name v t (VarCtx Decoration_AST.Double))
