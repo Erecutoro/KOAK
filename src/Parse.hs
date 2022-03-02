@@ -191,8 +191,11 @@ parseEq = pure Eq <* parseChar '='
 parseOp :: Parser Op
 parseOp = parseAdd <|> parseSub <|> parseMul <|> parseDiv <|> parseEq
 
+parseSubBinOp :: Parser (Expr Undetermined)
+parseSubBinOp = parseCall <|> parseVar
+
 parseBinOp :: Parser (Expr Undetermined)
-parseBinOp = BinOp <$> pure Custom <*> parseVar <*> parseSpace parseOp <*> parseExpr <*> pure Empty
+parseBinOp = BinOp <$> pure Custom <*> parseSubBinOp <*> parseSpace parseOp <*> parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -243,7 +246,7 @@ parseState = State <$> parseStatement <*> parseSpace parseExpr <*> condition <*>
 ------------------------------------------------------------
 
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseState <|> parseFunc <|> parseCall <|> parseBinOp <|> parseVar
+parseExpr = parseState <|> parseFunc <|> parseBinOp <|> parseCall  <|> parseVar
 
 ------------------------------------------------------------
 
