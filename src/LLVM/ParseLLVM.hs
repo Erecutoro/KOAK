@@ -13,20 +13,17 @@ import LLVM.AST.Type
 import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Float as F
 
-import Data.ByteString.Char8 as BS
-import Data.ByteString.Short
-
 import Data
 import Decoration_AST
 
 parseArgs :: [Expr a] -> [Parameter]
 parseArgs [] = []
 parseArgs (x:xs) = case x of
-                   Var n v t a -> case t of
-                                  Data.Int -> Parameter int (Name $ toShort $ BS.pack n) [] : parseArgs xs
-                                  Data.Double -> Parameter double (Name $ toShort $ BS.pack n) [] : parseArgs xs
-                                  _ -> []
-                   _ -> []
+    Var n v t a -> case t of
+        Data.Int -> Parameter int (mkName n) [] : parseArgs xs
+        Data.Double -> Parameter double (mkName n) [] : parseArgs xs
+        _ -> []
+    _ -> []
 
 llvmFloat :: String -> F.SomeFloat
 llvmFloat val = F.Double (read val :: Double)

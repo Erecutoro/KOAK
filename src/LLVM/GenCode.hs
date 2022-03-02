@@ -56,23 +56,29 @@ checkType a b t = case getExprType a of
 
 genAdd :: Expr Ctx -> Expr Ctx -> Instruction
 genAdd a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FAdd noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Add False False (getLLVMVar a) (getLLVMVar b) []
-
+             Data.Double -> LLVM.AST.FAdd 
+                noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> LLVM.AST.Add 
+                False False (getLLVMVar a) (getLLVMVar b) []
 
 genSub :: Expr Ctx -> Expr Ctx -> Instruction
 genSub a b = case checkType a b Data.Double of
-             Data.Double-> LLVM.AST.FSub noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Sub False False (getLLVMVar a) (getLLVMVar b) []
+             Data.Double-> LLVM.AST.FSub 
+                noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> LLVM.AST.Sub
+                False False (getLLVMVar a) (getLLVMVar b) []
 
 genMul :: Expr Ctx -> Expr Ctx -> Instruction
 genMul a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FMul noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Mul False False (getLLVMVar a) (getLLVMVar b) []
+             Data.Double -> LLVM.AST.FMul 
+                noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> LLVM.AST.Mul
+                 False False (getLLVMVar a) (getLLVMVar b) []
 
 genDiv :: Expr Ctx -> Expr Ctx -> Instruction
 genDiv a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FDiv noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Double -> LLVM.AST.FDiv 
+                noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
              Data.Int -> LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
 
 genBinOp :: Op -> Expr Ctx -> Expr Ctx -> Instruction
