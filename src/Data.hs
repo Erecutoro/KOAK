@@ -5,7 +5,7 @@ type Val = String
 
 data Undetermined =
     Empty
-    deriving (Show)
+    deriving (Show,Eq)
 
 data Op =
     Add |
@@ -13,7 +13,7 @@ data Op =
     Mul |
     Div |
     Eq
-    deriving (Show)
+    deriving (Show,Eq)
 
 data Compare =
     Sup |
@@ -21,20 +21,20 @@ data Compare =
     Equal |
     SupEq |
     InfEq
-    deriving (Show)
+    deriving (Show,Eq)
 
 data Statement =
     For |
     While |
     If
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Type =
     Int |
     Double |
     Str |
     Custom
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Expr a =
     Var Name Val Type a |
@@ -42,5 +42,5 @@ data Expr a =
     Call Name [Expr a] a |
     Func Name [Expr a] Type (Expr a) a | --ne supporte pas les fontions sur plusieurs ligne
     State Statement (Expr a) Compare (Expr a) (Expr a) a -- pour l'instant if et for ne sont pas prévu
-    deriving (Show)
+    deriving (Show, Eq)
     --Extern Name [Expr a]
