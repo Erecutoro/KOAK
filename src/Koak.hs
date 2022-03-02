@@ -41,7 +41,8 @@ initFunc expr = GlobalDefinition functionDefaults
 genFunc :: [Expr Ctx] -> [Definition]
 genFunc [] = []
 genFunc [x] = [initFunc x]
-genFunc (x:xs) = initFunc x : genFunc xs
+genFunc (x:xs) = [initFunc x]
+--  : genFunc xs
 
 koak :: [Expr Ctx] -> IO ()
 koak expr = withContext $ \context ->
