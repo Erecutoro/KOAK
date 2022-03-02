@@ -28,8 +28,6 @@ library
       Data
       Decoration
       Decoration_AST
-      Eval
-      Lib
       Parse
   other-modules:
       Paths_koak
