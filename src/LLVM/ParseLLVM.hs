@@ -28,11 +28,18 @@ parseArgs (x:xs) = case x of
 llvmFloat :: String -> F.SomeFloat
 llvmFloat val = F.Double (read val :: Double)
 
-getCType :: Data.Type -> Val -> C.Constant
-getCType t val = case t of
+getCType :: Data.Type -> Ctx -> Val -> C.Constant
+getCType t ctx val = case t of
                  Data.Int -> C.Int 32 $ read val
                  Data.Double -> C.Float $ llvmFloat val
-                 _ -> C.Int 32 3
+                 _ -> case ctx of
+                      VarCtx t -> case t of
+                            Decoration_AST.Short -> C.Int 16 $ read val
+                            Decoration_AST.Integer -> C.Int 32 $ read val
+                            Decoration_AST.Long -> C.Int 32 $ read val
+                            Decoration_AST.Double -> C.Float $ llvmFloat val
+                            _ -> C.Int 32 84
+                      _ -> C.Int 32 84
 
 getType :: Data.Type -> AST.Type
 getType t = case t of 

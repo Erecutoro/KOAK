@@ -20,64 +20,69 @@ import LLVM.ParseLLVM
 getLLVMVar :: Expr Ctx -> Operand
 getLLVMVar var = case var of
                  Var n val t mv -> if n == "none"
-                                   then ConstantOperand (getCType t val)
+                                   then ConstantOperand (getCType t mv val)
                                    else LocalReference (getType t) (mkName n)
 
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of
              Var n val t mv -> (n, val, t, mv)
 
+getCtxType :: Ctx -> Data.Type
+getCtxType a = case a of
+               VarCtx t -> case t of
+                           Decoration_AST.Short -> Data.Int
+                           Decoration_AST.Integer -> Data.Int
+                           Decoration_AST.Long -> Data.Int
+                           Decoration_AST.Double -> Data.Double
+                           Decoration_AST.Char -> Data.Custom
+               _ -> Data.Custom
+
 getExprType :: Expr Ctx -> Data.Type
 getExprType a = case a of
-                Var _ _ t _ -> t
+                Var _ _ t ctx -> case t of
+                                 Custom -> getCtxType ctx
+                                 _ -> t
                 Func _ _ t _ _ -> t
                 _ -> Data.Custom
-
-getCtxType :: (Data.Name, Val, Data.Type, Ctx) -> Data.Type
-getCtxType (_, _, _, a) = case a of
-                       VarCtx t -> case t of
-                                   Decoration_AST.Short -> Data.Int
-                                   Decoration_AST.Integer -> Data.Int
-                                   Decoration_AST.Long -> Data.Int
-                                   Decoration_AST.Double -> Data.Double
-                                   Decoration_AST.Char -> Data.Custom
-                       _ -> Data.Custom
 
 ------------------------------------CHECK---------------------------------------
 
 checkType :: Expr Ctx -> Expr Ctx -> Data.Type -> Data.Type
 checkType a b t = case getExprType a of
-                  t -> case getExprType b of
-                        t -> t
-                        _ -> getCtxType $ getVar b
+                  Data.Double -> case getExprType b of
+                                 Data.Double -> Data.Double
+                                 _ -> Data.Custom
+                  Data.Int -> case getExprType b of
+                                 Data.Int -> Data.Int
+                                 _ -> Data.Int
                   _ -> Data.Custom
 
 --------------------------------------OP----------------------------------------
 
 genAdd :: Expr Ctx -> Expr Ctx -> Instruction
 genAdd a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FAdd 
+             Data.Double -> LLVM.AST.FAdd
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Add 
+             Data.Int -> LLVM.AST.Add
                 False False (getLLVMVar a) (getLLVMVar b) []
 
 genSub :: Expr Ctx -> Expr Ctx -> Instruction
 genSub a b = case checkType a b Data.Double of
-             Data.Double-> LLVM.AST.FSub 
+             Data.Double-> LLVM.AST.FSub
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
              Data.Int -> LLVM.AST.Sub
                 False False (getLLVMVar a) (getLLVMVar b) []
 
 genMul :: Expr Ctx -> Expr Ctx -> Instruction
 genMul a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FMul 
+             Data.Double -> LLVM.AST.FMul
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
              Data.Int -> LLVM.AST.Mul
                  False False (getLLVMVar a) (getLLVMVar b) []
 
 genDiv :: Expr Ctx -> Expr Ctx -> Instruction
 genDiv a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FDiv 
+             Data.Double -> LLVM.AST.FDiv
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
              Data.Int -> LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
 
