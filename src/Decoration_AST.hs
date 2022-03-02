@@ -26,9 +26,9 @@ newtype Variable = Varinfo (INDENTIFIER, SymbolInfo)
 
 newtype SymbolTable = SymTab [Variable]
 
-data Ctx = VarCtx [EXT_TYPE]
-        | BinOpCtx [EXT_TYPE] [EXT_TYPE] [EXT_TYPE]
-        | CallCtx
+data Ctx = VarCtx EXT_TYPE
+        | BinOpCtx EXT_TYPE EXT_TYPE EXT_TYPE
+        | CallCtx EXT_TYPE
         | FuncCtx
         | StateCtx
         deriving (Show)
