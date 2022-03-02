@@ -34,7 +34,7 @@ data Type =
     Double |
     Str |
     Custom
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Expr a =
     Var Name Val Type a |

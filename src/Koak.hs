@@ -29,16 +29,15 @@ genModule def = defaultModule
 initFunc :: Expr Ctx -> Definition
 initFunc expr = GlobalDefinition functionDefaults
   {
-    name = Name $ toShort $ BS.pack n
+    name = mkName n
     , parameters = (parseArgs arg, False)
     , returnType = getType ret
-    , basicBlocks = [genBlocks body (toShort $ BS.pack n)]
+    , basicBlocks = [genBlocks body n]
   }
   where
     (n, arg, ret, body, ctx) = getFunc expr
 
 -- Remove all non func
-
 genFunc :: [Expr Ctx] -> [Definition]
 genFunc [] = []
 genFunc [x] = [initFunc x]

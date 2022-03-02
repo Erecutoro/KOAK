@@ -5,14 +5,10 @@
 -- genCode
 --
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module LLVM.GenCode where
 
 import LLVM.AST
 import Control.Monad.Except
-import Data.ByteString.Char8 as BS
-import Data.ByteString.Short
 
 import LLVMType
 import Data
@@ -23,28 +19,47 @@ import LLVM.ParseLLVM
 
 getLLVMVar :: Expr a -> Operand
 getLLVMVar var = case var of
-             Var n val t mv -> LocalReference (getType t) (Name $ toShort $ BS.pack n)
-             _ -> LocalReference VoidType $ Name $ toShort $ BS.pack "none"
+                 Var n val t mv -> if n == "none"
+                                   then ConstantOperand (getCType t val)
+                                   else LocalReference (getType t) (mkName n)
 
 getVar :: Expr a -> (Data.Name, Val, Data.Type, a)
 getVar var = case var of
              Var n val t mv -> (n, val, t, mv)
 
+getExprType :: Expr a -> Data.Type
+getExprType a = case a of
+                Var _ _ t _ -> t
+                Func _ _ t _ _ -> t
+
+isSameType :: Expr a -> Expr a -> Bool
+isSameType a b = getExprType a == getExprType b
+
 --------------------------------------OP----------------------------------------
 
-genAdd :: Expr a -> Expr b -> Instruction
-genAdd a b = LLVM.AST.Add False False (getLLVMVar a) (getLLVMVar b) []
+genAdd :: Expr a -> Expr a -> Instruction
+genAdd a b = if isSameType a b == (getExprType a == Data.Int)
+             then LLVM.AST.FAdd noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             else LLVM.AST.Add False False (getLLVMVar a) (getLLVMVar b) []
 
-genSub :: Expr a -> Expr b -> Instruction
-genSub a b = LLVM.AST.Sub False False (getLLVMVar a) (getLLVMVar b) []
+genSub :: Expr a -> Expr a -> Instruction
+genSub a b = if isSameType a b == (getExprType a == Data.Int)
+             then LLVM.AST.FSub noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             else LLVM.AST.Sub False False (getLLVMVar a) (getLLVMVar b) []
 
-genMul :: Expr a -> Expr b -> Instruction
-genMul a b = LLVM.AST.Mul False False (getLLVMVar a) (getLLVMVar b) []
 
-genDiv :: Expr a -> Expr b -> Instruction
-genDiv a b = LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
+genMul :: Expr a -> Expr a -> Instruction
+genMul a b = if isSameType a b == (getExprType a == Data.Int)
+             then LLVM.AST.FMul noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             else LLVM.AST.Mul False False (getLLVMVar a) (getLLVMVar b) []
 
-genBinOp :: Op -> Expr a -> Expr b -> Instruction
+genDiv :: Expr a -> Expr a -> Instruction
+genDiv a b = if isSameType a b == (getExprType a == Data.Int)
+             then LLVM.AST.FDiv noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             else LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
+
+
+genBinOp :: Op -> Expr a -> Expr a -> Instruction
 genBinOp op a b = case op of
                   Data.Add -> genAdd a b
                   Data.Sub -> genSub a b
@@ -59,17 +74,23 @@ genCall n arg = genAdd (Prelude.head arg) (Prelude.head arg)
 --------------------------------------GEN---------------------------------------
 
 tmp :: Instruction
-tmp = LLVM.AST.Add False False (LocalReference int (Name $ toShort $ BS.pack "null")) (LocalReference int (Name $ toShort $ BS.pack "null")) []
+tmp = LLVM.AST.Add False False (LocalReference int (mkName "null")) (LocalReference int (mkName "null")) []
 
-eval :: Expr Ctx -> Named Instruction
+eval :: Expr Ctx -> (String, Named Instruction)
 eval ctx = case ctx of
            Data.BinOp t a op b _ -> case op of
-                               Data.Eq -> mkName n := genBinOp op a b
-                               _ -> mkName "none" := genBinOp op a b -- <- will throw 100%: redefinition of "none" variable
+                               Data.Eq -> (n, mkName n := genBinOp op a b)
+                               _ -> ("def", mkName "def" := genBinOp op a b) -- <- will throw 100%: redefinition of "none" variable
                                where
                                    (n, val, t, mv) = getVar a
-           Data.Call n arg t -> mkName n := genCall n arg
-           _ -> Name "none" := tmp
+           Data.Call n arg t -> (n, mkName n := genCall n arg)
+           _ -> ("none", mkName "none" := tmp)
 
-genBlocks :: Expr Ctx -> ShortByteString -> BasicBlock
-genBlocks ctx name = BasicBlock (Name name) [eval ctx] (Do $ Ret (Just (LocalReference int (Name $ toShort $ BS.pack "a"))) [])
+evalRet :: String -> Named Terminator
+evalRet n = Do $ Ret (Just $ LocalReference int (mkName n)) []
+
+genBlocks :: Expr Ctx -> String -> BasicBlock
+genBlocks ctx name = BasicBlock (mkName name) [ins] ret
+    where
+        (n, ins) = eval ctx
+        ret = evalRet n

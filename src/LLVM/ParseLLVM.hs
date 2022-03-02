@@ -10,6 +10,8 @@ module LLVM.ParseLLVM where
 import LLVMType
 import LLVM.AST as AST
 import LLVM.AST.Type
+import qualified LLVM.AST.Constant as C
+import qualified LLVM.AST.Float as F
 
 import Data.ByteString.Char8 as BS
 import Data.ByteString.Short
@@ -25,6 +27,15 @@ parseArgs (x:xs) = case x of
                                   Data.Double -> Parameter double (Name $ toShort $ BS.pack n) [] : parseArgs xs
                                   _ -> []
                    _ -> []
+
+llvmFloat :: String -> F.SomeFloat
+llvmFloat val = F.Double (read val :: Double)
+
+getCType :: Data.Type -> Val -> C.Constant
+getCType t val = case t of
+                 Data.Int -> C.Int 32 $ read val
+                 Data.Double -> C.Float $ llvmFloat val
+                 _ -> C.Int 32 3
 
 getType :: Data.Type -> AST.Type
 getType t = case t of 

@@ -30,7 +30,6 @@ library
       Decoration_AST
       Koak
       LLVM.GenCode
-      LLVM.Jit
       LLVM.LLVMType
       LLVM.ParseLLVM
       LLVMType
