@@ -50,12 +50,15 @@ getType _ = Left ""
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-binOpTypage :: EXT_TYPE -> EXT_TYPE  -> EXT_TYPE 
-binOpTypage Decoration_AST.Integer Decoration_AST.Integer = Decoration_AST.Integer 
-binOpTypage Decoration_AST.Integer Decoration_AST.Double  = Decoration_AST.Double  
-binOpTypage Decoration_AST.Double  Decoration_AST.Integer = Decoration_AST.Double 
-binOpTypage Decoration_AST.Double  Decoration_AST.Double  = Decoration_AST.Double 
-binOpTypage _ _ = Decoration_AST.Double 
+binOpTypage :: EXT_TYPE -> EXT_TYPE  -> Either Error EXT_TYPE 
+binOpTypage Decoration_AST.Integer Decoration_AST.Integer = Right Decoration_AST.Integer 
+binOpTypage Decoration_AST.Integer Decoration_AST.Double  = Right Decoration_AST.Double  
+binOpTypage Decoration_AST.Double Decoration_AST.Integer = Right Decoration_AST.Double 
+binOpTypage Decoration_AST.Double Decoration_AST.Double  = Right Decoration_AST.Double 
+binOpTypage _ _ = Left "Type Error" 
+
+setBinOpTypage :: Expr Ctx -> Expr Ctx -> Either Error EXT_TYPE 
+setBinOpTypage a b = getType a >>= \na -> getType b >>= \nb -> binOpTypage na nb
 
 decorateVar :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
 decorateVar (Var "none" v t _) st = Right (Var [] v t (VarCtx Decoration_AST.Double))
@@ -71,7 +74,7 @@ decorateAssignVar _ _ = Left "Variable Assignation Error"
 
 decorateBinOp :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
 decorateBinOp (BinOp _ a Eq b _) st = decorateAssignVar a st >>= \na -> decorate b st >>= \nb -> Right (BinOp Data.Double na Eq nb (BinOpCtx Decoration_AST.Double Decoration_AST.Double Decoration_AST.Double))
-decorateBinOp (BinOp _ a op b _) st = decorate a st >>= \na -> decorate b st >>= \nb -> Right (BinOp Data.Double na op nb (BinOpCtx Decoration_AST.Double Decoration_AST.Double Decoration_AST.Double))
+decorateBinOp (BinOp _ a op b _) st = decorate a st >>= \na -> decorate b st >>= \nb -> setBinOpTypage na nb >>= \nt -> Right (BinOp Data.Double na op nb (BinOpCtx nt Decoration_AST.Double Decoration_AST.Double))
 decorateBinOp _ _ = Left "Binop Error"
 
 decorateCall :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
