@@ -7,18 +7,17 @@ import System.Exit
 import Parse
 import Data
 import Decoration_AST
+import Decoration
 import Koak
 
-ast :: [Expr Ctx]
-ast = [Func "test" [Var "x" "none" Data.Double (VarCtx [Decoration_AST.Double])] Data.Double (BinOp Data.Double (Var "x" "none" Custom (VarCtx [Decoration_AST.Double])) Data.Mul (Var "none" "2.0" Data.Double (VarCtx [Decoration_AST.Double])) (BinOpCtx [Decoration_AST.Double] [Decoration_AST.Double] [Decoration_AST.Double])) FuncCtx]
-
 main :: IO ()
-main = koak ast
-    -- do
-    -- args <- getArgs
-    -- files <- mapM readFile args
-    -- let commands = callParser (mySplit files)
-    -- print commands
+main = do
+    args <- getArgs
+    files <- mapM readFile args
+    let commands = callParser (mySplit files)
+    case startDecoration commands (SymTab []) of
+        Right a -> koak a
+        _ -> exitWith $ ExitFailure 84
 
 myDelim :: String -> [String]
 myDelim [] = []

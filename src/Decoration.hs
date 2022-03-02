@@ -26,7 +26,7 @@ decorateArgumentList _ _ = Left "Type Error"
 
 setArgumentST :: [Expr Ctx] -> SymbolTable -> Either Error SymbolTable 
 setArgumentST [] st =  Right st
-setArgumentST ((Var name _ _ (VarCtx a)):as) (SymTab st) = Right (SymTab (Varinfo (name, BinOpInfo a):st))
+setArgumentST ((Var name _ _ (VarCtx a)):as) (SymTab st) = setArgumentST as (SymTab st) >>= \(SymTab nst) -> Right (SymTab (Varinfo (name, BinOpInfo a):nst))
 setArgumentST _ st = Right st 
 
 findSymbol :: String -> SymbolTable -> Either Error SymbolInfo  
