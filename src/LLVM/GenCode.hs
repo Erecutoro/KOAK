@@ -32,32 +32,36 @@ getExprType a = case a of
                 Var _ _ t _ -> t
                 Func _ _ t _ _ -> t
 
-isSameType :: Expr a -> Expr a -> Bool
-isSameType a b = getExprType a == getExprType b
-
 --------------------------------------OP----------------------------------------
 
 genAdd :: Expr a -> Expr a -> Instruction
-genAdd a b = if isSameType a b == (getExprType a == Data.Int)
-             then LLVM.AST.FAdd noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             else LLVM.AST.Add False False (getLLVMVar a) (getLLVMVar b) []
+genAdd a b = case getExprType a of
+             Data.Double -> case getExprType b of
+                            Data.Double -> LLVM.AST.FAdd noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> case getExprType b of
+                         Data.Int -> LLVM.AST.Add False False (getLLVMVar a) (getLLVMVar b) []
 
 genSub :: Expr a -> Expr a -> Instruction
-genSub a b = if isSameType a b == (getExprType a == Data.Int)
-             then LLVM.AST.FSub noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             else LLVM.AST.Sub False False (getLLVMVar a) (getLLVMVar b) []
+genSub a b = case getExprType a of
+             Data.Double -> case getExprType b of
+                            Data.Double -> LLVM.AST.FSub noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> case getExprType b of
+                         Data.Int -> LLVM.AST.Sub False False (getLLVMVar a) (getLLVMVar b) []
 
 
 genMul :: Expr a -> Expr a -> Instruction
-genMul a b = if isSameType a b == (getExprType a == Data.Int)
-             then LLVM.AST.FMul noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             else LLVM.AST.Mul False False (getLLVMVar a) (getLLVMVar b) []
+genMul a b = case getExprType a of
+             Data.Double -> case getExprType b of
+                            Data.Double -> LLVM.AST.FMul noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> case getExprType b of
+                         Data.Int -> LLVM.AST.Mul False False (getLLVMVar a) (getLLVMVar b) []
 
 genDiv :: Expr a -> Expr a -> Instruction
-genDiv a b = if isSameType a b == (getExprType a == Data.Int)
-             then LLVM.AST.FDiv noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             else LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
-
+genDiv a b = case getExprType a of
+             Data.Double -> case getExprType b of
+                            Data.Double -> LLVM.AST.FDiv noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> case getExprType b of
+                         Data.Int -> LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
 
 genBinOp :: Op -> Expr a -> Expr a -> Instruction
 genBinOp op a b = case op of
