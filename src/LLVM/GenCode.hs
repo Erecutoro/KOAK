@@ -8,12 +8,15 @@
 module LLVM.GenCode where
 
 import LLVM.AST
-import Control.Monad.Except
+import LLVM.AST.Attribute
+import qualified LLVM.AST.CallingConvention as CC
+import LLVM.AST.Constant
+import LLVM.AST.AddrSpace
 
-import LLVMType
 import Data
 import Decoration_AST
 import LLVM.ParseLLVM
+import LLVM.Converter
 
 -------------------------------------GET----------------------------------------
 
@@ -26,6 +29,7 @@ getLLVMVar var = case var of
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of
              Var n val t mv -> (n, val, t, mv)
+             _ -> ("te", "3", Data.Int, VarCtx Decoration_AST.Integer)
 
 getCtxType :: Ctx -> Data.Type
 getCtxType a = case a of
@@ -97,29 +101,41 @@ genBinOp op a b = case op of
 
 --------------------------------------FUNC--------------------------------------
 
-genCall :: Data.Name -> [Expr Ctx] -> Instruction
-genCall n arg = genAdd (Prelude.head arg) (Prelude.head arg)
+genCallArg :: [Expr Ctx] -> [(Operand, [ParameterAttribute])]
+genCallArg [] = []
+genCallArg [x] = [(getLLVMVar x, [])]
+genCallArg (x:xs) = (getLLVMVar x, []) : genCallArg xs
+
+genLLVMArg :: [Expr Ctx] -> [LLVM.AST.Type]
+genLLVMArg = map (getType . getExprType)
+
+genCall :: Data.Name -> [Expr Ctx] -> LLVM.AST.Type -> Instruction
+genCall n arg t = LLVM.AST.Call
+         (Just NoTail)
+         CC.C
+         [ZeroExt]
+         (Right $ ConstantOperand $ GlobalReference
+            (PointerType (FunctionType t (genLLVMArg arg) False) (AddrSpace 0))
+            (mkName n))
+         (genCallArg arg)
+         [] []
 
 --------------------------------------GEN---------------------------------------
-
-tmp :: Instruction
-tmp = LLVM.AST.Add False False (LocalReference int (mkName "null")) (LocalReference int (mkName "null")) []
 
 eval :: Expr Ctx -> (String, Named Instruction)
 eval ctx = case ctx of
            Data.BinOp t a op b _ -> case op of
                                Data.Eq -> (n, mkName n := genBinOp op a b)
-                               _ -> ("def", mkName "def" := genBinOp op a b) -- <- will throw 100%: redefinition of "none" variable
+                               _ -> ("def", mkName "def" := genBinOp op a b)
                                where
                                    (n, val, t, mv) = getVar a
-           Data.Call n arg t -> (n, mkName n := genCall n arg)
-           _ -> ("none", mkName "none" := tmp)
+           Data.Call n arg t -> (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
 
-evalRet :: String -> Named Terminator
-evalRet n = Do $ Ret (Just $ LocalReference int (mkName n)) []
+evalRet :: String -> LLVM.AST.Type -> Named Terminator
+evalRet n t = Do $ Ret (Just $ LocalReference t (mkName n)) []
 
-genBlocks :: Expr Ctx -> String -> BasicBlock
-genBlocks ctx name = BasicBlock (mkName name) [ins] ret
+genBlocks :: Expr Ctx -> String -> Data.Type -> BasicBlock
+genBlocks ctx name t = BasicBlock (mkName name) [ins] ret
     where
         (n, ins) = eval ctx
-        ret = evalRet n
+        ret = evalRet n (getLLVMType t)

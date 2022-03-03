@@ -29,6 +29,7 @@ library
       Decoration
       Decoration_AST
       Koak
+      LLVM.Converter
       LLVM.GenCode
       LLVM.LLVMType
       LLVM.ParseLLVM

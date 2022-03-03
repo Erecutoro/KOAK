@@ -19,6 +19,7 @@ import LLVM.ParseLLVM
 import LLVM.GenCode
 import Data
 import Decoration_AST
+import LLVM.Converter
 
 genModule :: [Definition] -> AST.Module
 genModule def = defaultModule
@@ -32,7 +33,7 @@ initFunc expr = GlobalDefinition functionDefaults
     name = mkName n
     , parameters = (parseArgs arg, False)
     , returnType = getType ret
-    , basicBlocks = [genBlocks body n]
+    , basicBlocks = [genBlocks body n ret]
   }
   where
     (n, arg, ret, body, ctx) = getFunc expr
@@ -41,7 +42,7 @@ initFunc expr = GlobalDefinition functionDefaults
 genFunc :: [Expr Ctx] -> [Definition]
 genFunc [] = []
 genFunc [x] = [initFunc x]
-genFunc (x:xs) = [initFunc x]
+genFunc (x:xs) = initFunc x : genFunc xs
 --  : genFunc xs
 
 koak :: [Expr Ctx] -> IO ()
