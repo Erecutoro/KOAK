@@ -5,6 +5,8 @@
 -- Decoration_UT
 --
 
+module Decoration_UT where
+
 import Data
 import Parse
 import Decoration_AST
