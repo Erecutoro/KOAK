@@ -23,10 +23,11 @@ data Compare =
     InfEq
     deriving (Show,Eq)
 
-data Statement =
-    For |
-    While |
-    If
+data Statement a =
+    For (Expr a) (Expr a) Compare (Expr a) (Expr a) (Expr a) a| -- initial, left compare right, endloop, body
+    While (Expr a) Compare (Expr a) (Expr a) a | -- left compare right body
+    If (Expr a) Compare (Expr a) (Expr a) a | -- left compare right body
+    Ifelse (Expr a) Compare (Expr a) (Expr a) (Expr a) a -- left compare right body else
     deriving (Show, Eq)
 
 data Type =
@@ -40,7 +41,6 @@ data Expr a =
     Var Name Val Type a |
     BinOp (Expr a) Op (Expr a) a |
     Call Name [Expr a] a |
-    Func Name [Expr a] Type (Expr a) a | --ne supporte pas les fontions sur plusieurs ligne
-    State Statement (Expr a) Compare (Expr a) (Expr a) a -- pour l'instant if et for ne sont pas prévu
+    Func Name [Expr a] Type (Expr a) a |
+    State (Statement a)
     deriving (Show, Eq)
-    --Extern Name [Expr a]

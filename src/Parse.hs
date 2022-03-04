@@ -240,25 +240,31 @@ parseInfEq = InfEq  <$ parseArg "<="
 parseCompare :: Parser Compare
 parseCompare = parseSup <|> parseInf <|> parseEqual <|> parseSupEq <|> parseInfEq
 
-parseStatement :: Parser Statement
-parseStatement = While <$ parseArg "while"
+parseFor :: Parser (Statement Undetermined)
+parseFor = undefined
 
-parseState :: Parser (Expr Undetermined)
-parseState = State <$> parseStatement <*> parseSpace parseExpr <*> condition <*> parseSpace parseExpr
-                   <*> body <*> pure Empty
-             where condition = parseCompare
-                   body = parseArg "do" *> parseSpace parseExpr
+parseWhile :: Parser (Statement Undetermined)
+parseWhile = undefined
+
+parseIf :: Parser (Statement Undetermined)
+parseIf = undefined
+
+parseIfelse :: Parser (Statement Undetermined)
+parseIfelse = undefined
+
+--parseStatement :: Parser Statement
+--parseStatement = While <$ parseArg "while"
+--
+--parseState :: Parser (Expr Undetermined)
+--parseState = State <$> parseStatement <*> parseSpace parseExpr <*> condition <*> parseSpace parseExpr
+--                   <*> body <*> pure Empty
+--             where condition = parseCompare
+--                   body = parseArg "do" *> parseSpace parseExpr
 
 ------------------------------------------------------------
 
 parseExpr :: Parser (Expr Undetermined)
 parseExpr = parseState <|> parseFunc <|> parseBinOp <|> parseCall  <|> parseVar
-
-------------------------------------------------------------
-
---abandonned
---parseExtern :: Parser (Expr Undetermined)
---parseExtern = Extern <$> parseName <* parseChar '(' <*> parseSfunc
 
 ------------------------------------------------------------
 
