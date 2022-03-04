@@ -63,7 +63,7 @@ getArgument [] = Right []
 -- typeToExttype _ = Double 
 
 getType :: Expr Ctx -> Either Error Type 
-getType (Var _ _ t _) = Right t
+getType (Var _ _ _ (VarCtx t)) = Right t
 getType (BinOp _ _ _ (BinOpCtx t)) = Right t
 getType (Call _ _ (CallCtx a)) = Right a
 getType _ = Left ""
@@ -73,7 +73,9 @@ binOpTypage Int Int = Right Int
 binOpTypage Int Double  = Right Double  
 binOpTypage Double Int = Right Double 
 binOpTypage Double Double  = Right Double 
-binOpTypage _ _ = Left "\ESC[31mERROR\ESC[0m - Operation cannot is handled" 
+binOpTypage Custom _ = Right Custom 
+binOpTypage _ Custom  = Right Custom 
+binOpTypage _ _ = Left "\ESC[31mERROR\ESC[0m - Operation is not handled" 
 
 setBinOpTypage :: Expr Ctx -> Expr Ctx -> Either Error Type 
 setBinOpTypage a b = getType a >>= \na -> getType b >>= \nb -> binOpTypage na nb
@@ -86,7 +88,7 @@ decorateVar :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
 decorateVar (Var "none" v t _) st = Right (Var "none" v t (VarCtx t))
 decorateVar (Var name v t _) st = case findSymbol name st of 
     Right FuncInfo {} -> Left "\ESC[31mERROR\ESC[0m - Function has been called as a variable"
-    Right BinOpInfo {} -> Right (Var name v t (VarCtx t))
+    Right (BinOpInfo nt) -> Right (Var name v t (VarCtx nt))
     Left a -> Left a
 decorateVar _ _ = Left "\ESC[31mERROR\ESC[0m - An unexpected Error has occured in a variable"
 

@@ -92,7 +92,6 @@ genBinOp op a b = case op of
                   Data.Sub -> genSub a b
                   Data.Mul -> genMul a b
                   Data.Div -> genDiv a b
-
                   Data.Eq -> genAdd a b
 
 --------------------------------------FUNC--------------------------------------
@@ -125,6 +124,7 @@ eval ctx = case ctx of
                                _ -> ("def", mkName "def" := genBinOp op a b)
                                where
                                    (n, val, t, mv) = getVar a
+
            Data.Call n arg t -> (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
 
 evalRet :: String -> LLVM.AST.Type -> Named Terminator

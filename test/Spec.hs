@@ -5,8 +5,8 @@ import Test.HUnit
 
 main :: IO Counts
 main = do
-        runTestTT myTest
-        runTestTT dataTest
+        -- runTestTT myTest
+        -- runTestTT dataTest
         runTestTT decorationTests
 
 myTest :: Test
