@@ -163,7 +163,7 @@ parseNone :: Parser String
 parseNone = Parser func where func a = Just("none", a)
 
 parseName :: Parser Name
-parseName = parseSpace parseStr <* parseChar ':' <|> parseStr <|> parseNone
+parseName = parseSpace (parseSome (parseAnyChar (['A'..'Z'] ++ ['a'..'z']))) <* parseChar ':' <|> (parseSome (parseAnyChar (['A'..'Z'] ++ ['a'..'z']))) <|> parseNone
 
 parseVarInt :: Parser (Expr Undetermined)
 parseVarInt = Var <$> parseSpace parseName <*> parseNum <*> parseSpace (pure Int) <*> pure Empty
@@ -171,11 +171,14 @@ parseVarInt = Var <$> parseSpace parseName <*> parseNum <*> parseSpace (pure Int
 parseVarFloat :: Parser (Expr Undetermined)
 parseVarFloat = Var <$> parseSpace parseName <*> (parseAndWith (\x y -> x ++ y) (parseAndWith (\ x y -> x ++ [y]) parseNum (parseAnyChar ['.'])) parseNum) <*> parseSpace (pure Double) <*> pure Empty
 
+parseVarString :: Parser (Expr Undetermined)
+parseVarString = Var <$> parseSpace parseName <*> parseStr <*> parseSpace (pure Str) <*> pure Empty 
+
 parseVarNone :: Parser (Expr Undetermined)
 parseVarNone = Var <$> parseSpace parseName <*> parseNone <*> parseSpace (pure Custom) <*> pure Empty
 
 parseVar :: Parser (Expr Undetermined)
-parseVar = parseVarFloat <|> parseVarInt <|> parseVarNone
+parseVar = parseVarFloat <|> parseVarInt <|> parseVarString <|> parseVarNone
 
 ------------------------------------------------------------
 
