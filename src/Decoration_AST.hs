@@ -7,28 +7,23 @@
 
 module Decoration_AST where
 
+import Data
+
 type INDENTIFIER = String
 
 type Error = String
 
-data EXT_TYPE =   Char 
-            | Short
-            | Integer  
-            | Long
-            | Double  
-            deriving (Eq, Show)
-
-data SymbolInfo = BinOpInfo EXT_TYPE
-                | FuncInfo EXT_TYPE [EXT_TYPE]
+data SymbolInfo = BinOpInfo Type
+                | FuncInfo Type [Type]
                 deriving (Eq, Show)
 
 newtype Variable = Varinfo (INDENTIFIER, SymbolInfo) 
 
 newtype SymbolTable = SymTab [Variable]
 
-data Ctx = VarCtx EXT_TYPE
-        | BinOpCtx EXT_TYPE EXT_TYPE EXT_TYPE
-        | CallCtx EXT_TYPE
+data Ctx = VarCtx Type
+        | BinOpCtx Type
+        | CallCtx Type
         | FuncCtx
         | StateCtx
         deriving (Eq, Show)

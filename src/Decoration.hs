@@ -23,9 +23,9 @@ findSymbol name (SymTab (Varinfo (a, sinfo):as))
 
 setSymbolTable :: Expr Ctx -> SymbolTable -> Either Error SymbolTable 
 setSymbolTable (Func name args t _ _) (SymTab st ) = case getArgument args of
-    Right a -> Right (SymTab (Varinfo (name, FuncInfo Decoration_AST.Double a) : st)) 
+    Right a -> Right (SymTab (Varinfo (name, FuncInfo Double a) : st)) 
     Left a -> Left a
-setSymbolTable (BinOp t (Var name none Custom _) Eq _ _) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo Decoration_AST.Double): st) )
+setSymbolTable (BinOp (Var name none Custom _) Eq _ _) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo Double): st) )
 setSymbolTable _ st = Right st
 
 -------------------------------------------------------------------------------
@@ -46,10 +46,10 @@ setArgumentST [] st =  Right st
 setArgumentST ((Var name _ _ (VarCtx a)):as) (SymTab st) = setArgumentST as (SymTab st) >>= \(SymTab nst) -> Right (SymTab (Varinfo (name, BinOpInfo a):nst))
 setArgumentST _ st = Right st 
 
-getArgument :: [Expr Ctx] -> Either Error [EXT_TYPE ]
+getArgument :: [Expr Ctx] -> Either Error [Type ]
 getArgument ((Var _ _ t _):as) = case getArgument as of
     Left a -> Left a
-    Right b -> Right (Decoration_AST.Double :b)
+    Right b -> Right (Double :b)
 getArgument (_:as) = Left "\ESC[31mERROR\ESC[0m - Argument is not Valid"
 getArgument [] = Right []
 
@@ -57,25 +57,25 @@ getArgument [] = Right []
 -------------------------------- Type Function --------------------------------
 -------------------------------------------------------------------------------
 
-typeToExttype :: Data.Type -> EXT_TYPE 
-typeToExttype Data.Double = Decoration_AST.Double
-typeToExttype Data.Int = Decoration_AST.Integer
-typeToExttype _ = Decoration_AST.Double 
+-- typeToExttype :: Data.Type -> Type 
+-- typeToExttype Data.Double = Double
+-- typeToExttype Data.Int = Int
+-- typeToExttype _ = Double 
 
-getType :: Expr Ctx -> Either Error EXT_TYPE 
-getType (Var _ _ t _) = Right (typeToExttype t)
-getType (BinOp t _ _ _ _) = Right (typeToExttype t)
+getType :: Expr Ctx -> Either Error Type 
+getType (Var _ _ t _) = Right t
+getType (BinOp _ _ _ (BinOpCtx t)) = Right t
 getType (Call _ _ (CallCtx a)) = Right a
 getType _ = Left ""
 
-binOpTypage :: EXT_TYPE -> EXT_TYPE  -> Either Error EXT_TYPE 
-binOpTypage Decoration_AST.Integer Decoration_AST.Integer = Right Decoration_AST.Integer 
-binOpTypage Decoration_AST.Integer Decoration_AST.Double  = Right Decoration_AST.Double  
-binOpTypage Decoration_AST.Double Decoration_AST.Integer = Right Decoration_AST.Double 
-binOpTypage Decoration_AST.Double Decoration_AST.Double  = Right Decoration_AST.Double 
-binOpTypage _ _ = Left "\ESC[31mERROR\ESC[0m - Operation cannot be handled" 
+binOpTypage :: Type -> Type  -> Either Error Type 
+binOpTypage Int Int = Right Int 
+binOpTypage Int Double  = Right Double  
+binOpTypage Double Int = Right Double 
+binOpTypage Double Double  = Right Double 
+binOpTypage _ _ = Left "\ESC[31mERROR\ESC[0m - Operation cannot is handled" 
 
-setBinOpTypage :: Expr Ctx -> Expr Ctx -> Either Error EXT_TYPE 
+setBinOpTypage :: Expr Ctx -> Expr Ctx -> Either Error Type 
 setBinOpTypage a b = getType a >>= \na -> getType b >>= \nb -> binOpTypage na nb
 
 -------------------------------------------------------------------------------
@@ -83,21 +83,21 @@ setBinOpTypage a b = getType a >>= \na -> getType b >>= \nb -> binOpTypage na nb
 -------------------------------------------------------------------------------
 
 decorateVar :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
-decorateVar (Var "none" v t _) st = Right (Var "none" v t (VarCtx $ typeToExttype t))
+decorateVar (Var "none" v t _) st = Right (Var "none" v t (VarCtx t))
 decorateVar (Var name v t _) st = case findSymbol name st of 
     Right FuncInfo {} -> Left "\ESC[31mERROR\ESC[0m - Function has been called as a variable"
-    Right BinOpInfo {} -> Right (Var name v t (VarCtx $ typeToExttype t))
+    Right BinOpInfo {} -> Right (Var name v t (VarCtx t))
     Left a -> Left a
 decorateVar _ _ = Left "\ESC[31mERROR\ESC[0m - An unexpected Error has occured in a variable"
 
 decorateAssignVar :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
-decorateAssignVar (Var name "none" t _) st = Right (Var name "none" t (VarCtx $ typeToExttype t))
+decorateAssignVar (Var name "none" t _) st = Right (Var name "none" t (VarCtx t))
 decorateAssignVar Var {} _ = Left "\ESC[31mERROR\ESC[0m - Variable is not valid for an assignation"
 decorateAssignVar _ _ = Left "\ESC[31mERROR\ESC[0m - Assignation can only be done on a variable"
 
 decorateBinOp :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
-decorateBinOp (BinOp _ a Eq b _) st = decorateAssignVar a st >>= \na -> decorate b st >>= \nb -> Right (BinOp Data.Double na Eq nb (BinOpCtx Decoration_AST.Double Decoration_AST.Double Decoration_AST.Double))
-decorateBinOp (BinOp _ a op b _) st = decorate a st >>= \na -> decorate b st >>= \nb -> setBinOpTypage na nb >>= \nt -> Right (BinOp Data.Double na op nb (BinOpCtx nt Decoration_AST.Double Decoration_AST.Double))
+decorateBinOp (BinOp a Eq b _) st = decorateAssignVar a st >>= \na -> decorate b st >>= \nb -> Right (BinOp na Eq nb (BinOpCtx Double))
+decorateBinOp (BinOp a op b _) st = decorate a st >>= \na -> decorate b st >>= \nb -> setBinOpTypage na nb >>= \nt -> Right (BinOp na op nb (BinOpCtx nt))
 decorateBinOp _ _ = Left "\ESC[31mERROR\ESC[0m - An unexpected error has occured in a Binop"
 
 decorateCall :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)

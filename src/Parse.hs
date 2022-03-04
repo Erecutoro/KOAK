@@ -136,10 +136,10 @@ parseSpace = func where
 ---------------------------------------------Parser Koak------------------------------------------------
 
 parseStr :: Parser String
-parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
+parseStr = parseChar '\"' *> parseSome (parseAnyChar (['A'..'Z'] ++ ['a'..'z'])) <* parseChar '\"'
 
 parseNum :: Parser String
-parseNum = parseSome (parseAnyChar ("." ++ ['0'..'9']))
+parseNum = parseSome (parseAnyChar ['0'..'9'])
 
 ------------------------------------------------------------
 
@@ -162,14 +162,20 @@ parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") 
 parseNone :: Parser String
 parseNone = Parser func where func a = Just("none", a)
 
-parseVal :: Parser Val
-parseVal = parseNum <|> parseNone
-
 parseName :: Parser Name
 parseName = parseSpace parseStr <* parseChar ':' <|> parseStr <|> parseNone
 
+parseVarInt :: Parser (Expr Undetermined)
+parseVarInt = Var <$> parseSpace parseName <*> parseNum <*> parseSpace (pure Int) <*> pure Empty
+
+parseVarFloat :: Parser (Expr Undetermined)
+parseVarFloat = Var <$> parseSpace parseName <*> (parseAndWith (\x y -> x ++ y) (parseAndWith (\ x y -> x ++ [y]) parseNum (parseAnyChar ['.'])) parseNum) <*> parseSpace (pure Double) <*> pure Empty
+
+parseVarNone :: Parser (Expr Undetermined)
+parseVarNone = Var <$> parseSpace parseName <*> parseNone <*> parseSpace (pure Custom) <*> pure Empty
+
 parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseSpace parseName <*> parseVal <*> parseSpace parseType <*> pure Empty
+parseVar = parseVarFloat <|> parseVarInt <|> parseVarNone
 
 ------------------------------------------------------------
 
@@ -195,7 +201,7 @@ parseSubBinOp :: Parser (Expr Undetermined)
 parseSubBinOp = parseCall <|> parseVar
 
 parseBinOp :: Parser (Expr Undetermined)
-parseBinOp = BinOp <$> pure Custom <*> parseSubBinOp <*> parseSpace parseOp <*> parseExpr <*> pure Empty
+parseBinOp = BinOp <$> parseSubBinOp <*> parseSpace parseOp <*> parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 
