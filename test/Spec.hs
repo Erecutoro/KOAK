@@ -1,11 +1,13 @@
 import Data
 import Parse
+import Decoration_UT
 import Test.HUnit
 
 main :: IO Counts
 main = do
         runTestTT myTest
         runTestTT dataTest
+        runTestTT decorationTests
 
 myTest :: Test
 myTest = test [ assertEqual "Basic Test of right parserChar" (Just ('a',"bc")) (runParser (parseChar 'a') "abc"),
