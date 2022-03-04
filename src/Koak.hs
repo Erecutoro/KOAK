@@ -7,6 +7,8 @@
 
 module Koak where
 
+import  System.Process
+
 import LLVM.AST as AST
 import LLVM.AST.Global
 import LLVM.Context
@@ -65,6 +67,7 @@ genFunc (x:xs) y = case x of
 koak :: [Expr Ctx] -> IO ()
 koak expr = withContext $ \context ->
   withModuleFromAST context mod $ \mod ->
-      writeLLVMAssemblyToFile (File "tmp.ll") mod
+      writeLLVMAssemblyToFile (File "tmp.ll") mod >>
+        callCommand "llc-9 -filetype=obj tmp.ll -o tmp.o; clang tmp.o -o a.out"
   where
     mod = genModule $ genFunc expr []

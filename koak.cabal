@@ -45,6 +45,7 @@ library
     , llvm-hs >=9.0.0
     , llvm-hs-pure >=9.0
     , mtl
+    , process
   default-language: Haskell2010
 
 executable koak-exe
@@ -61,6 +62,7 @@ executable koak-exe
     , llvm-hs >=9.0.0
     , llvm-hs-pure >=9.0
     , mtl
+    , process
   default-language: Haskell2010
 
 test-suite koak-test
@@ -80,4 +82,5 @@ test-suite koak-test
     , llvm-hs >=9.0.0
     , llvm-hs-pure >=9.0
     , mtl
+    , process
   default-language: Haskell2010

@@ -25,6 +25,7 @@ dependencies:
 - llvm-hs-pure >= 9.0
 - mtl
 - bytestring
+- process
 
 library:
   source-dirs: src
