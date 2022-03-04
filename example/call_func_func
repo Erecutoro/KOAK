@@ -1,3 +1,2 @@
 def add(a:double, b:double):double a + b;
 def test(a:double, b:double):double add(a, b);
-test(5, 6);
