@@ -16,11 +16,11 @@ data EXT_TYPE =   Char
             | Integer  
             | Long
             | Double  
-            deriving (Show)
+            deriving (Eq, Show)
 
 data SymbolInfo = BinOpInfo EXT_TYPE
                 | FuncInfo EXT_TYPE [EXT_TYPE]
-                deriving (Show)
+                deriving (Eq, Show)
 
 newtype Variable = Varinfo (INDENTIFIER, SymbolInfo) 
 
@@ -31,4 +31,4 @@ data Ctx = VarCtx EXT_TYPE
         | CallCtx EXT_TYPE
         | FuncCtx
         | StateCtx
-        deriving (Show)
+        deriving (Eq, Show)
