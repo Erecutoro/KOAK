@@ -22,9 +22,10 @@ import LLVM.Converter
 
 getLLVMVar :: Expr Ctx -> Operand
 getLLVMVar var = case var of
-                 Var n val t mv -> if n == "none"
-                                   then ConstantOperand (getCType t mv val)
+                 Var n val t ctx -> if n == "none"
+                                   then ConstantOperand (getCType t ctx val)
                                    else LocalReference (getType t) (mkName n)
+               --   BinOp t a op b ctx -> genBinOp 
 
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of

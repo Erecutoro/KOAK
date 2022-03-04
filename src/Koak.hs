@@ -11,6 +11,7 @@ import LLVM.AST as AST
 import LLVM.AST.Global
 import LLVM.Context
 import LLVM.Module
+import qualified LLVM.AST.Constant as C
 
 import Data.ByteString.Short
 import Data.ByteString.Char8 as BS
@@ -20,6 +21,7 @@ import LLVM.GenCode
 import Data
 import Decoration_AST
 import LLVM.Converter
+import LLVM.LLVMType
 
 genModule :: [Definition] -> AST.Module
 genModule def = defaultModule
@@ -36,15 +38,18 @@ initFunc (n, arg, ret, body, ctx)  = GlobalDefinition functionDefaults
     , basicBlocks = [genBlocks body n ret]
   }
 
-genMainBlock :: [Expr Ctx] -> [BasicBlock]
-genMainBlock ctx = []
+genMainBlock :: [Expr Ctx] -> BasicBlock
+genMainBlock (ctx:a) = BasicBlock (mkName "main") [ins] ret
+    where
+        (n, ins) = eval ctx
+        ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 
 initMain :: [Expr Ctx] -> Definition
 initMain ctx = GlobalDefinition functionDefaults {
-    name = mkName ".Main"
+    name = mkName "main"
     , parameters = ([], False)
-    , returnType = getType Data.Int
-    , basicBlocks = genMainBlock ctx
+    , returnType = int
+    , basicBlocks = [genMainBlock ctx]
   }
 
 genFunc :: [Expr Ctx] -> [Expr Ctx] -> [Definition]
