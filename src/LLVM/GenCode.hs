@@ -33,18 +33,8 @@ getVar var = case var of
 
 getCtxType :: Ctx -> Data.Type
 getCtxType a = case a of
-               CallCtx t -> case t of 
-                           Decoration_AST.Short -> Data.Int
-                           Decoration_AST.Integer -> Data.Int
-                           Decoration_AST.Long -> Data.Int
-                           Decoration_AST.Double -> Data.Double
-                           Decoration_AST.Char -> Data.Custom
-               VarCtx t -> case t of
-                           Decoration_AST.Short -> Data.Int
-                           Decoration_AST.Integer -> Data.Int
-                           Decoration_AST.Long -> Data.Int
-                           Decoration_AST.Double -> Data.Double
-                           Decoration_AST.Char -> Data.Custom
+               CallCtx t -> t
+               VarCtx t -> t
                _ -> Data.Custom
 
 getExprType :: Expr Ctx -> Data.Type
@@ -130,7 +120,7 @@ genCall n arg t = LLVM.AST.Call
 
 eval :: Expr Ctx -> (String, Named Instruction)
 eval ctx = case ctx of
-           Data.BinOp t a op b _ -> case op of
+           Data.BinOp a op b _ -> case op of
                                Data.Eq -> (n, mkName n := genBinOp op a b)
                                _ -> ("def", mkName "def" := genBinOp op a b)
                                where
