@@ -27,6 +27,10 @@ getCtxCType ctx val = case ctx of
                   _ -> C.Int 32 84
 
 getCType :: Data.Type -> Ctx -> Val -> C.Constant
+getCType t ctx "none" = case t of
+                 Data.Int -> C.Int 32 0
+                 Data.Double -> C.Float $ llvmFloat "0"
+                 _ -> getCtxCType ctx "0"
 getCType t ctx val = case t of
                  Data.Int -> C.Int 32 $ read val
                  Data.Double -> C.Float $ llvmFloat val

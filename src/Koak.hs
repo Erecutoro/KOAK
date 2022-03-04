@@ -41,6 +41,13 @@ initFunc (n, arg, ret, body, ctx)  = GlobalDefinition functionDefaults
   }
 
 genMainBlock :: [Expr Ctx] -> BasicBlock
+genMainBlock [] = BasicBlock (mkName "main") [] ret
+    where
+        ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
+genMainBlock [ctx] = BasicBlock (mkName "main") [ins] ret
+    where
+        (n, ins) = eval ctx
+        ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 genMainBlock (ctx:a) = BasicBlock (mkName "main") [ins] ret
     where
         (n, ins) = eval ctx
