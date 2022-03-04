@@ -29,10 +29,15 @@ getLLVMVar var = case var of
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of
              Var n val t mv -> (n, val, t, mv)
-             _ -> ("te", "3", Data.Int, VarCtx Decoration_AST.Integer)
 
 getCtxType :: Ctx -> Data.Type
 getCtxType a = case a of
+               CallCtx t -> case t of 
+                           Decoration_AST.Short -> Data.Int
+                           Decoration_AST.Integer -> Data.Int
+                           Decoration_AST.Long -> Data.Int
+                           Decoration_AST.Double -> Data.Double
+                           Decoration_AST.Char -> Data.Custom
                VarCtx t -> case t of
                            Decoration_AST.Short -> Data.Int
                            Decoration_AST.Integer -> Data.Int
@@ -113,7 +118,7 @@ genCall :: Data.Name -> [Expr Ctx] -> LLVM.AST.Type -> Instruction
 genCall n arg t = LLVM.AST.Call
          (Just NoTail)
          CC.C
-         [ZeroExt]
+         []
          (Right $ ConstantOperand $ GlobalReference
             (PointerType (FunctionType t (genLLVMArg arg) False) (AddrSpace 0))
             (mkName n))

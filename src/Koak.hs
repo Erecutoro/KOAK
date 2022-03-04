@@ -27,27 +27,39 @@ genModule def = defaultModule
       , moduleDefinitions = def
       }
 
-initFunc :: Expr Ctx -> Definition
-initFunc expr = GlobalDefinition functionDefaults
+initFunc :: (Data.Name, [Expr Ctx], Data.Type, Expr Ctx, Ctx) -> Definition
+initFunc (n, arg, ret, body, ctx)  = GlobalDefinition functionDefaults
   {
     name = mkName n
     , parameters = (parseArgs arg, False)
     , returnType = getType ret
     , basicBlocks = [genBlocks body n ret]
   }
-  where
-    (n, arg, ret, body, ctx) = getFunc expr
 
--- Remove all non func
-genFunc :: [Expr Ctx] -> [Definition]
-genFunc [] = []
-genFunc [x] = [initFunc x]
-genFunc (x:xs) = initFunc x : genFunc xs
---  : genFunc xs
+genMainBlock :: [Expr Ctx] -> [BasicBlock]
+genMainBlock ctx = []
+
+initMain :: [Expr Ctx] -> Definition
+initMain ctx = GlobalDefinition functionDefaults {
+    name = mkName ".Main"
+    , parameters = ([], False)
+    , returnType = getType Data.Int
+    , basicBlocks = genMainBlock ctx
+  }
+
+genFunc :: [Expr Ctx] -> [Expr Ctx] -> [Definition]
+genFunc [] [] = []
+genFunc [] y = [initMain y]
+genFunc [x] y = case x of
+    Func n arg ret body ctx -> initFunc (n, arg, ret, body, ctx) : genFunc [] y
+    _ -> genFunc [] (x:y)
+genFunc (x:xs) y = case x of
+    Func n arg ret body ctx -> initFunc (n, arg, ret, body, ctx) : genFunc xs y
+    _ -> genFunc xs (x:y)
 
 koak :: [Expr Ctx] -> IO ()
 koak expr = withContext $ \context ->
   withModuleFromAST context mod $ \mod ->
       writeLLVMAssemblyToFile (File "tmp.ll") mod
   where
-    mod = genModule $ genFunc expr
+    mod = genModule $ genFunc expr []
