@@ -92,7 +92,6 @@ genBinOp op a b = case op of
                   Data.Sub -> genSub a b
                   Data.Mul -> genMul a b
                   Data.Div -> genDiv a b
-
                   Data.Eq -> genAdd a b
 
 --------------------------------------FUNC--------------------------------------
@@ -119,13 +118,11 @@ genCall n arg t = LLVM.AST.Call
 --------------------------------------GEN---------------------------------------
 
 eval :: Expr Ctx -> (String, Named Instruction)
-eval ctx = case ctx of
-           Data.BinOp a op b _ -> case op of
-                               Data.Eq -> (n, mkName n := genBinOp op a b)
-                               _ -> ("def", mkName "def" := genBinOp op a b)
+eval (Data.BinOp a Data.Eq b _) = (n, mkName n := genBinOp Data.Eq a b)
                                where
                                    (n, val, t, mv) = getVar a
-           Data.Call n arg t -> (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
+eval (Data.BinOp a op b _) = ("def", mkName "def" := genBinOp op a b)
+eval (Data.Call n arg t) = (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
 
 evalRet :: String -> LLVM.AST.Type -> Named Terminator
 evalRet n t = Do $ Ret (Just $ LocalReference t (mkName n)) []
