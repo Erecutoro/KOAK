@@ -19,12 +19,11 @@ main = do
         Right a -> koak a
         _ -> exitWith $ ExitFailure 84
 
-myDelim :: String -> [String]
-myDelim [] = []
-myDelim (a:as)
-    | a == '\n' = "" : myDelim as
-    | otherwise = (a : head (myDelim as)) : tail (myDelim as)
+myDelim :: Char -> String -> [String]
+myDelim c xs = case break (== c) xs of
+    (y, _ : ys) -> y : myDelim c ys
+    (y, []) -> [y]
 
 mySplit :: [String] -> [String]
 mySplit [] = []
-mySplit (a:as) = (myDelim a) ++ (mySplit as)
+mySplit (a:as) = (myDelim '\n' a) ++ (mySplit as)
