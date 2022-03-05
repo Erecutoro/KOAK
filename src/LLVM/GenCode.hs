@@ -25,7 +25,6 @@ getLLVMVar var = case var of
                  Var n val t ctx -> if n == "none" 
                                     then ConstantOperand (getCType t ctx val)
                                     else LocalReference (getType t) (mkName n)
-                 _ -> ConstantOperand (getCType Data.Int (VarCtx Decoration_AST.Double) "0")
 
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of
@@ -33,18 +32,8 @@ getVar var = case var of
 
 getCtxType :: Ctx -> Data.Type
 getCtxType a = case a of
-               CallCtx t -> case t of
-                           Decoration_AST.Short -> Data.Int
-                           Decoration_AST.Integer -> Data.Int
-                           Decoration_AST.Long -> Data.Int
-                           Decoration_AST.Double -> Data.Double
-                           Decoration_AST.Char -> Data.Custom
-               VarCtx t -> case t of
-                           Decoration_AST.Short -> Data.Int
-                           Decoration_AST.Integer -> Data.Int
-                           Decoration_AST.Long -> Data.Int
-                           Decoration_AST.Double -> Data.Double
-                           Decoration_AST.Char -> Data.Custom
+               CallCtx t -> t
+               VarCtx t -> t
                _ -> Data.Custom
 
 getExprType :: Expr Ctx -> Data.Type
@@ -99,10 +88,9 @@ genDiv a b = case checkType a b Data.Double of
 genEq :: Expr Ctx -> Expr Ctx -> Instruction
 genEq a b = case getExprType b of
             Data.Double -> LLVM.AST.FAdd 
-               noFastMathFlags (getLLVMVar b) (ConstantOperand $ getCType Data.Double (VarCtx Decoration_AST.Double) "0") []
+               noFastMathFlags (getLLVMVar b) (ConstantOperand $ getCType Data.Double (VarCtx Data.Double) "0") []
             Data.Int -> LLVM.AST.Add 
-               False False (getLLVMVar b) (ConstantOperand $ getCType Data.Double (VarCtx Decoration_AST.Double) "0") []
-
+               False False (getLLVMVar b) (ConstantOperand $ getCType Data.Int (VarCtx Data.Int) "0") []
 
 genBinOp :: Op -> Expr Ctx -> Expr Ctx -> Instruction
 genBinOp op a b = case op of
@@ -136,13 +124,11 @@ genCall n arg t = LLVM.AST.Call
 -------------------------------------START--------------------------------------
 
 eval :: Expr Ctx -> (String, Named Instruction)
-eval ctx = case ctx of
-           Data.BinOp t a op b _ -> case op of
-                               Data.Eq -> (n, mkName n := genBinOp op a b)
-                               _ -> ("def", mkName "def" := genBinOp op a b)
+eval (Data.BinOp a Data.Eq b _) = (n, mkName n := genBinOp Data.Eq a b)
                                where
                                    (n, val, t, mv) = getVar a
-           Data.Call n arg t -> (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
+eval (Data.BinOp a op b _) = ("def", mkName "def" := genBinOp op a b)
+eval (Data.Call n arg t) = (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
 
 evalRet :: String -> LLVM.AST.Type -> Named Terminator
 evalRet n t = Do $ Ret (Just $ LocalReference t (mkName n)) []

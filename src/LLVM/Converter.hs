@@ -19,10 +19,8 @@ import LLVM.ParseLLVM
 getCtxCType :: Ctx -> Val -> C.Constant
 getCtxCType ctx val = case ctx of
                   VarCtx t -> case t of
-                            Decoration_AST.Short -> C.Int 16 $ read val
-                            Decoration_AST.Integer -> C.Int 32 $ read val
-                            Decoration_AST.Long -> C.Int 32 $ read val
-                            Decoration_AST.Double -> C.Float $ llvmFloat val
+                            Int -> C.Int 32 $ read val
+                            Double -> C.Float $ llvmFloat val
                             _ -> C.Int 32 84
                   _ -> C.Int 32 84
 
