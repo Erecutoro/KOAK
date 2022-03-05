@@ -18,7 +18,7 @@ newtype Parser a = Parser {
 
 instance Applicative Parser where
     pure a = Parser $ \ str -> Just (a, str)
-    p1 <*> p2 = Parser func where 
+    p1 <*> p2 = Parser func where
         func str = case runParser p1 str of
             Just (r1, str1) -> case runParser p2 str1 of
                 Just (r2, str2) -> Just (r1 r2, str2)
@@ -68,7 +68,7 @@ parseAnd (Parser a) (Parser b) = Parser func where
                     Nothing -> Nothing
 
 parseAndWith :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
-parseAndWith function (Parser a) (Parser b) = Parser func where 
+parseAndWith function (Parser a) (Parser b) = Parser func where
                 func x = case a x of
                     Just (r1, xs) -> case b xs of
                         Just (r2, xr) -> Just (function r1 r2, xr)
@@ -172,7 +172,7 @@ parseVarFloat :: Parser (Expr Undetermined)
 parseVarFloat = Var <$> parseSpace parseName <*> (parseAndWith (\x y -> x ++ y) (parseAndWith (\ x y -> x ++ [y]) parseNum (parseAnyChar ['.'])) parseNum) <*> parseSpace (pure Double) <*> pure Empty
 
 parseVarString :: Parser (Expr Undetermined)
-parseVarString = Var <$> parseSpace parseName <*> parseStr <*> parseSpace (pure Str) <*> pure Empty 
+parseVarString = Var <$> parseSpace parseName <*> parseStr <*> parseSpace (pure Str) <*> pure Empty
 
 parseVarNone :: Parser (Expr Undetermined)
 parseVarNone = Var <$> parseSpace parseName <*> parseNone <*> parseSpace (pure Custom) <*> pure Empty
@@ -253,17 +253,23 @@ parseFor = For <$> init <*> comp <*> endloop <*> parseExpr <*> pure Empty
                   endloop = parseExpr <* parseSpace (parseArg "in")
 
 parseWhile :: Parser (Statement Undetermined)
-parseWhile = undefined
+parseWhile = While <$> comp <*> parseExpr <*> pure Empty
+                where comp = parseArg "while" *> parseSpace parseCompareState <* parseSpace (parseArg "do")
+
+parseIfelse :: Parser (Statement Undetermined)
+parseIfelse = Ifelse <$> comp <*> parseExpr <*> ifelse <*> pure Empty
+                where comp = parseArg "if" *> parseCompareState <* parseSpace (parseArg "then")
+                      ifelse = parseSpace (parseArg "else") *> parseExpr
 
 parseIf :: Parser (Statement Undetermined)
 parseIf = If <$> comp <*> parseExpr <*> pure Empty
-            where comp = parseArg "if" *> parseCompareState
-
-parseIfelse :: Parser (Statement Undetermined)
-parseIfelse = undefined
+            where comp = parseArg "if" *> parseCompareState <* parseSpace (parseArg "then")
 
 parseState :: Parser (Expr Undetermined)
-parseState = State <$> parseIf
+parseState = State <$> parseFor
+            <|> State <$> parseWhile
+            <|> State <$> parseIfelse
+            <|> State <$> parseIf
 
 --parseStatement :: Parser Statement
 --parseStatement = While <$ parseArg "while"
@@ -277,7 +283,7 @@ parseState = State <$> parseIf
 ------------------------------------------------------------
 
 parseExpr :: Parser (Expr Undetermined)
-parseExpr = parseState <|> parseFunc <|> parseBinOp <|> parseCall  <|> parseVar
+parseExpr = parseState <|> parseFunc <|> parseBinOp <|> parseCall <|> parseVar
 
 ------------------------------------------------------------
 
