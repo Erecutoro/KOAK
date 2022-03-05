@@ -7,7 +7,7 @@
 
 module LLVM.GenCode where
 
-import LLVM.AST
+import LLVM.AST as AST
 import LLVM.AST.Attribute
 import qualified LLVM.AST.CallingConvention as CC
 import LLVM.AST.Constant
@@ -15,10 +15,14 @@ import LLVM.AST.AddrSpace
 
 import Data
 import Decoration_AST
-import LLVM.ParseLLVM
+import LLVM.LLVMType
 import LLVM.Converter
+import LLVM.AST.Global
 
 -------------------------------------GET----------------------------------------
+
+genDefaultVar :: Data.Type -> Operand
+genDefaultVar t = ConstantOperand $ getCType t (VarCtx t) "0"
 
 getLLVMVar :: Expr Ctx -> Operand
 getLLVMVar var = case var of
@@ -60,37 +64,37 @@ checkType a b t = case getExprType a of
 
 genAdd :: Expr Ctx -> Expr Ctx -> Instruction
 genAdd a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FAdd
+             Data.Double -> AST.FAdd
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Add
+             Data.Int -> AST.Add
                 False False (getLLVMVar a) (getLLVMVar b) []
 
 genSub :: Expr Ctx -> Expr Ctx -> Instruction
 genSub a b = case checkType a b Data.Double of
-             Data.Double-> LLVM.AST.FSub
+             Data.Double-> AST.FSub
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Sub
+             Data.Int -> AST.Sub
                 False False (getLLVMVar a) (getLLVMVar b) []
 
 genMul :: Expr Ctx -> Expr Ctx -> Instruction
 genMul a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FMul
+             Data.Double -> AST.FMul
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.Mul
+             Data.Int -> AST.Mul
                  False False (getLLVMVar a) (getLLVMVar b) []
 
 genDiv :: Expr Ctx -> Expr Ctx -> Instruction
 genDiv a b = case checkType a b Data.Double of
-             Data.Double -> LLVM.AST.FDiv
+             Data.Double -> AST.FDiv
                 noFastMathFlags (getLLVMVar a) (getLLVMVar b) []
-             Data.Int -> LLVM.AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
+             Data.Int -> AST.UDiv False (getLLVMVar a) (getLLVMVar b) []
 
 genEq :: Expr Ctx -> Expr Ctx -> Instruction
 genEq a b = case getExprType b of
-            Data.Double -> LLVM.AST.FAdd 
-               noFastMathFlags (getLLVMVar b) (ConstantOperand $ getCType Data.Double (VarCtx Data.Double) "0") []
-            Data.Int -> LLVM.AST.Add 
-               False False (getLLVMVar b) (ConstantOperand $ getCType Data.Int (VarCtx Data.Int) "0") []
+            Data.Double -> AST.FAdd 
+               noFastMathFlags (getLLVMVar b) (genDefaultVar Data.Double) []
+            Data.Int -> AST.Add 
+               False False (getLLVMVar b) (genDefaultVar Data.Int) []
 
 genBinOp :: Op -> Expr Ctx -> Expr Ctx -> Instruction
 genBinOp op a b = case op of
@@ -107,11 +111,11 @@ genCallArg [] = []
 genCallArg [x] = [(getLLVMVar x, [])]
 genCallArg (x:xs) = (getLLVMVar x, []) : genCallArg xs
 
-genLLVMFuncArg :: [Expr Ctx] -> [LLVM.AST.Type]
+genLLVMFuncArg :: [Expr Ctx] -> [AST.Type]
 genLLVMFuncArg = map (getType . getExprType)
 
-genCall :: Data.Name -> [Expr Ctx] -> LLVM.AST.Type -> Instruction
-genCall n arg t = LLVM.AST.Call
+genCall :: Data.Name -> [Expr Ctx] -> AST.Type -> Instruction
+genCall n arg t = AST.Call
          (Just NoTail)
          CC.C
          []
@@ -123,18 +127,24 @@ genCall n arg t = LLVM.AST.Call
 
 -------------------------------------START--------------------------------------
 
-eval :: Expr Ctx -> (String, Named Instruction)
-eval (Data.BinOp a Data.Eq b _) = (n, mkName n := genBinOp Data.Eq a b)
-                               where
-                                   (n, val, t, mv) = getVar a
-eval (Data.BinOp a op b _) = ("def", mkName "def" := genBinOp op a b)
-eval (Data.Call n arg t) = (n, mkName n := genCall n arg (getLLVMType $ getCtxType t))
+evalBinOp :: Expr Ctx -> Expr Ctx -> [(String, Named Instruction)]
+evalBinOp a b = []
 
-evalRet :: String -> LLVM.AST.Type -> Named Terminator
+eval :: Expr Ctx -> [(String, Named Instruction)]
+eval (Data.BinOp a Data.Eq b _) = evalBinOp a b
+
+eval (Data.BinOp a op b _) = [("def", mkName "def" := genBinOp op a b)]
+eval (Data.Call n arg t) = [(n, mkName n := genCall n arg (getLLVMType $ getCtxType t))]
+eval a@(Data.Var n v t ctx) = [("def", mkName "def" := genEq a a)]
+
+eval (Data.Func n arg t body ctx) = []
+eval (Data.State dunno a cmp b body ctx) = []
+
+evalRet :: String -> AST.Type -> Named Terminator
 evalRet n t = Do $ Ret (Just $ LocalReference t (mkName n)) []
 
 genBlocks :: Expr Ctx -> String -> Data.Type -> BasicBlock
 genBlocks ctx name t = BasicBlock (mkName name) [ins] ret
     where
-        (n, ins) = eval ctx
+        [(n, ins)] = eval ctx
         ret = evalRet n (getLLVMType t)

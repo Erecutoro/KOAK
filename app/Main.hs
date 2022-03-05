@@ -1,11 +1,9 @@
 module Main where
 
-import System.IO
 import System.Environment
 import System.Exit
 
 import Parse
-import Data
 import Decoration_AST
 import Decoration
 import Koak

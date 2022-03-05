@@ -46,11 +46,11 @@ genMainBlock [] = BasicBlock (mkName "main") [] ret
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 genMainBlock [ctx] = BasicBlock (mkName "main") [ins] ret
     where
-        (n, ins) = eval ctx
+        [(n, ins)] = eval ctx
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 genMainBlock (ctx:a) = BasicBlock (mkName "main") [ins] ret
     where
-        (n, ins) = eval ctx
+        [(n, ins)] = eval ctx
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 
 initMain :: [Expr Ctx] -> Definition
@@ -74,7 +74,7 @@ genFunc (x:xs) y = case x of
 koak :: [Expr Ctx] -> IO ()
 koak expr = withContext $ \context ->
   withModuleFromAST context mod $ \mod ->
-      writeLLVMAssemblyToFile (File "tmp.ll") mod >>
-        callCommand "llc-9 -filetype=obj tmp.ll -o tmp.o; clang tmp.o -o a.out"
+      writeLLVMAssemblyToFile (File ".tmp.ll") mod >>
+        callCommand "llc-9 -filetype=obj .tmp.ll -o .tmp.o; clang .tmp.o -o a.out"
   where
     mod = genModule $ genFunc expr []
