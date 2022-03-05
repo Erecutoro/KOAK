@@ -135,11 +135,14 @@ parseSpace = func where
 
 ---------------------------------------------Parser Koak------------------------------------------------
 
+parseString :: Parser String
+parseString = parseChar '\"' *> parseSome (parseAnyChar (['A'..'Z'] ++ ['a'..'z'])) <* parseChar '\"'
+
 parseStr :: Parser String
-parseStr = parseSome (parseAnyChar ("\"\'" ++ ['A'..'Z'] ++ ['a'..'z']))
+parseStr = parseSome (parseAnyChar (['A'..'Z'] ++ ['a'..'z']))
 
 parseNum :: Parser String
-parseNum = parseSome (parseAnyChar ("." ++ ['0'..'9']))
+parseNum = parseSome (parseAnyChar ['0'..'9'])
 
 ------------------------------------------------------------
 
@@ -162,14 +165,26 @@ parseType = (pure Int <* parseArg "int") <|> (pure Double <* parseArg "double") 
 parseNone :: Parser String
 parseNone = Parser func where func a = Just("none", a)
 
-parseVal :: Parser Val
-parseVal = parseNum <|> parseNone
-
 parseName :: Parser Name
 parseName = parseSpace parseStr <* parseChar ':' <|> parseStr <|> parseNone
 
+parseVarInt :: Parser (Expr Undetermined)
+parseVarInt = Var <$> parseSpace parseName <*> parseNum <*> parseSpace (pure Int) <*> pure Empty
+
+parseVarFloat :: Parser (Expr Undetermined)
+parseVarFloat = Var <$> parseSpace parseName <*> (parseAndWith (\x y -> x ++ y) (parseAndWith (\ x y -> x ++ [y]) parseNum (parseAnyChar ['.'])) parseNum) <*> parseSpace (pure Double) <*> pure Empty
+
+parseVarString :: Parser (Expr Undetermined)
+parseVarString = Var <$> parseSpace parseName <*> parseString <*> parseSpace (pure Str) <*> pure Empty 
+
+parseVarNone :: Parser (Expr Undetermined)
+parseVarNone = Var <$> parseSpace parseName <*> parseNone <*> parseSpace (pure Custom) <*> pure Empty
+
 parseVar :: Parser (Expr Undetermined)
-parseVar = Var <$> parseSpace parseName <*> parseVal <*> parseSpace parseType <*> pure Empty
+parseVar = parseVarFloat <|> parseVarInt <|> parseVarString <|> parseVarNone
+
+parseArguments :: Parser (Expr Undetermined)
+parseArguments = Var <$> parseSpace parseName <*> parseNone <*> parseSpace parseType <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -195,7 +210,7 @@ parseSubBinOp :: Parser (Expr Undetermined)
 parseSubBinOp = parseCall <|> parseVar
 
 parseBinOp :: Parser (Expr Undetermined)
-parseBinOp = BinOp <$> pure Custom <*> parseSubBinOp <*> parseSpace parseOp <*> parseExpr <*> pure Empty
+parseBinOp = BinOp <$> parseSubBinOp <*> parseSpace parseOp <*> parseExpr <*> pure Empty
 
 ------------------------------------------------------------
 
@@ -208,10 +223,14 @@ parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall <*> pure Empty
 
 ------------------------------------------------------------
 
+parseFuncArg :: Parser [Expr Undetermined]
+parseFuncArg =  ((:) <$> (parseSpace parseArguments <* parseSpace (parseChar ',')) <*> parseFuncArg)
+            <|> (\a -> [a]) <$> (parseSpace parseArguments <* parseSpace (parseChar ')'))
+
 parseFunc :: Parser (Expr Undetermined)
 parseFunc = Func <$> name <*> param <*> return_type <*> parseSpace parseExpr <*> pure Empty
             where name = parseArg "def" *> parseSpace parseStr
-                  param = parseChar '(' *> parseSubCall
+                  param = parseChar '(' *> parseFuncArg
                   return_type = parseSpace (parseChar ':') *> parseType
 
 ------------------------------------------------------------

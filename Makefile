@@ -13,6 +13,10 @@ MAIN    := app/Main.hs
 
 SRC     := src/Data.hs
 
+KOAK =	.tmp.ll \
+		.tmp.o \
+		a.out
+
 TESTSRC := test/Spec.hs
 
 OBJ := $(MAIN:.hs=.o) $(MAIN:.hs=.hi)
@@ -31,6 +35,7 @@ tests_run:
 
 clean:
 	stack clean
+	$(RM) $(KOAK)
 
 fclean:	clean
 	$(RM) $(NAME)
