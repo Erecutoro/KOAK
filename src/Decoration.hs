@@ -25,7 +25,7 @@ setSymbolTable :: Expr Ctx -> SymbolTable -> Either Error SymbolTable
 setSymbolTable (Func name args t _ _) (SymTab st ) = case getArgument args of
     Right a -> Right (SymTab (Varinfo (name, FuncInfo Double a) : st)) 
     Left a -> Left a
-setSymbolTable (BinOp (Var name none Custom _) Eq _ _) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo Double): st) )
+setSymbolTable (BinOp (Var name none Custom _) Eq _ (BinOpCtx t)) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo t): st) )
 setSymbolTable _ st = Right st
 
 -------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ decorateAssignVar Var {} _ = Left "\ESC[31mERROR\ESC[0m - Variable is not valid 
 decorateAssignVar _ _ = Left "\ESC[31mERROR\ESC[0m - Assignation can only be done on a variable"
 
 decorateBinOp :: Expr Undetermined -> SymbolTable  -> Either Error (Expr Ctx)
-decorateBinOp (BinOp a Eq b _) st = decorateAssignVar a st >>= \na -> decorate b st >>= \nb -> Right (BinOp na Eq nb (BinOpCtx Double))
+decorateBinOp (BinOp a Eq b _) st = decorateAssignVar a st >>= \na -> decorate b st >>= \nb -> getType nb >>= \nt -> Right (BinOp na Eq nb (BinOpCtx nt))
 decorateBinOp (BinOp a op b _) st = decorate a st >>= \na -> decorate b st >>= \nb -> setBinOpTypage na nb >>= \nt -> Right (BinOp na op nb (BinOpCtx nt))
 decorateBinOp _ _ = Left "\ESC[31mERROR\ESC[0m - An unexpected error has occured in a Binop"
 
