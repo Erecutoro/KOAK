@@ -113,8 +113,19 @@ decorateFunc :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
 decorateFunc (Func name a t b _) st = decorateArgumentList a st >>= \na -> setArgumentST na st >>= \nst -> decorate b nst >>= \nb -> Right (Func name na t nb FuncCtx)
 decorateFunc _ _ = Left "\ESC[31mERROR\ESC[0m - An unexpected error has occured in a function"
 
-decorateState :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
-decorateState (State s a cmp b c _) st = decorate a st >>= \na -> decorate b st >>= \nb -> decorate c st >>= \nc -> Right (State s na cmp nb nc StateCtx)
+--decorateState :: Expr Undetermined -> SymbolTable -> Either Error (Expr Ctx)
+--decorateState (State s a cmp b c _) st = decorate a st >>= \na -> decorate b st >>= \nb -> decorate c st >>= \nc -> Right (State s na cmp nb nc StateCtx)
+--decorateState _ _ = Left "\ESC[32m[CONGRATULATION!]\ESC[0m - You coded so badly you created an impossible error, go touch some grass now"
+
+decorateState :: Expr Undetermined  -> SymbolTable  -> Either Error (Expr Ctx)
+decorateState (State (If (Comp a cmp b) body _)) st = decorate a st >>= \na -> decorate b st >>= \nb -> decorate body st >>= \nbody
+    -> Right (State (If (Comp na cmp nb) nbody StateCtx))
+decorateState (State (Ifelse (Comp a cmp b) body bodyelse _)) st = decorate a st >>= \na -> decorate b st >>= \nb -> decorate body st >>= \nbody
+    -> decorate bodyelse st >>= \nbodyelse -> Right (State (Ifelse (Comp na cmp nb) nbody nbodyelse StateCtx))
+decorateState (State (For init (Comp a cmp b) loop body _)) st = decorate init st >>= \ninit -> decorate a st >>= \na -> decorate b st >>= \nb -> decorate loop st >>= \nloop
+    -> decorate body st >>= \nbody -> Right (State (For ninit (Comp na cmp nb) nloop nbody StateCtx ))
+decorateState (State (While (Comp a cmp b) body _)) st = decorate a st >>= \na -> decorate b st >>= \nb -> decorate body st >>= \nbody
+    -> Right (State (While (Comp na cmp nb) nbody StateCtx))
 decorateState _ _ = Left "\ESC[32m[CONGRATULATION!]\ESC[0m - You coded so badly you created an impossible error, go touch some grass now"
 
 -------------------------------------------------------------------------------
