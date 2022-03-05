@@ -15,7 +15,7 @@ main = do
     let commands = callParser (mySplit files)
     case startDecoration commands (SymTab []) of
         Right a -> koak a
-        _ -> exitWith $ ExitFailure 84
+        Left a -> putStrLn a
 
 myDelim :: Char -> String -> [String]
 myDelim c xs = case break (== c) xs of
