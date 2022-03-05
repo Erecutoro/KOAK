@@ -240,17 +240,27 @@ parseInfEq = InfEq  <$ parseArg "<="
 parseCompare :: Parser Compare
 parseCompare = parseSup <|> parseInf <|> parseEqual <|> parseSupEq <|> parseInfEq
 
+parseCompareState :: Parser (CompareState Undetermined)
+parseCompareState = Comp <$> parseSpace parseExpr <*> parseCompare <*> parseSpace parseExpr
+
 parseFor :: Parser (Statement Undetermined)
-parseFor = undefined
+parseFor = For <$> init <*> comp <*> endloop <*> parseExpr <*> pure Empty
+            where init = parseArg "for" *> parseSpace parseExpr
+                  comp = parseChar ',' *> parseSpace parseCompareState <*parseChar ','
+                  endloop = parseExpr <* parseSpace (parseArg "in")
 
 parseWhile :: Parser (Statement Undetermined)
 parseWhile = undefined
 
 parseIf :: Parser (Statement Undetermined)
-parseIf = undefined
+parseIf = If <$> comp <*> parseExpr <*> pure Empty
+            where comp = parseArg "if" *> parseCompareState
 
 parseIfelse :: Parser (Statement Undetermined)
 parseIfelse = undefined
+
+parseState :: Parser (Expr Undetermined)
+parseState = State <$> parseIf
 
 --parseStatement :: Parser Statement
 --parseStatement = While <$ parseArg "while"

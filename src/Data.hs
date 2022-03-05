@@ -23,11 +23,15 @@ data Compare =
     InfEq
     deriving (Show,Eq)
 
+data CompareState a =
+    Comp (Expr a) Compare (Expr a)
+    deriving (Show, Eq)
+
 data Statement a =
-    For (Expr a) (Expr a) Compare (Expr a) (Expr a) (Expr a) a| -- initial, left compare right, endloop, body
-    While (Expr a) Compare (Expr a) (Expr a) a | -- left compare right body
-    If (Expr a) Compare (Expr a) (Expr a) a | -- left compare right body
-    Ifelse (Expr a) Compare (Expr a) (Expr a) (Expr a) a -- left compare right body else
+    For (Expr a) (CompareState a) (Expr a) (Expr a) a| -- initial, CompareState, endloop, body
+    While (CompareState a) (Expr a) a | -- CompareState body
+    If (CompareState a) (Expr a) a | -- CompareState body
+    Ifelse (CompareState a) (Expr a) (Expr a) a -- CompareState body else
     deriving (Show, Eq)
 
 data Type =
