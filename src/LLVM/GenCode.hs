@@ -26,7 +26,6 @@ getLLVMVar var = case var of
                                     then ConstantOperand (getCType t ctx val)
                                     else LocalReference (getType t) (mkName n)
                  _ -> ConstantOperand (getCType Data.Int (VarCtx Decoration_AST.Double) "0")
-               --   BinOp t a op b ctx -> ConstantOperand (getCType Data.Int ctx "0")
 
 getVar :: Expr Ctx -> (Data.Name, Val, Data.Type, Ctx)
 getVar var = case var of
@@ -135,9 +134,6 @@ genCall n arg t = LLVM.AST.Call
          [] []
 
 -------------------------------------START--------------------------------------
-
--- evalExpr Expr Ctx -> Instruction
--- evalExpr ctx = 
 
 eval :: Expr Ctx -> (String, Named Instruction)
 eval ctx = case ctx of
