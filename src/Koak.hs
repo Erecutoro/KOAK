@@ -46,11 +46,11 @@ genMainBlock [] = BasicBlock (mkName "main") [] ret
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 genMainBlock [ctx] = BasicBlock (mkName "main") [ins] ret
     where
-        [(n, ins)] = eval ctx
+        (n, ins) = eval ctx
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 genMainBlock (ctx:a) = BasicBlock (mkName "main") [ins] ret
     where
-        [(n, ins)] = eval ctx
+        (n, ins) = eval ctx
         ret = Do $ Ret (Just $ ConstantOperand (C.Int 32 0)) []
 
 initMain :: [Expr Ctx] -> Definition
