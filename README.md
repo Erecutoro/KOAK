@@ -1,5 +1,32 @@
 # KOAK EPITECH
 
+<p align="center">
+  <img 
+    width="100"
+    height="100"
+    src="logos/bash.svg"
+  >
+    <img 
+    width="100"
+    height="100"
+    src="logos/c.svg"
+  >
+    <img 
+    width="100"
+    height="100"
+    src="logos/haskell.svg"
+  >
+    <img 
+    width="100"
+    height="100"
+    src="logos/llvm.svg"
+  >
+    <img 
+    width="100"
+    height="100"
+    src="logos/vscode.svg"
+  >
+</p>
 This project aims to implement a compiler/interpreter of the KOAK language, a simplified version of the original Kaleidoscope Language (which can be found [here](https://llvm.org/docs/tutorial/LangImpl01.html)), using haskell language and llvm.
 This project is divided in 4 parts:
 1. Parsing
