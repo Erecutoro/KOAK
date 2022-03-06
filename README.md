@@ -27,6 +27,7 @@
     src="logos/vscode.svg"
   >
 </p>
+
 This project aims to implement a compiler/interpreter of the KOAK language, a simplified version of the original Kaleidoscope Language (which can be found [here](https://llvm.org/docs/tutorial/LangImpl01.html)), using haskell language and llvm.
 This project is divided in 4 parts:
 1. Parsing
