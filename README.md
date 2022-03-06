@@ -1,29 +1,19 @@
 # KOAK EPITECH
 
 <p align="center">
-  <img 
-    width="100"
-    height="100"
-    src="logos/bash.svg"
-  >
     <img 
-    width="100"
-    height="100"
-    src="logos/c.svg"
-  >
-    <img 
-    width="100"
-    height="100"
+    width="150"
+    height="150"
     src="logos/haskell.svg"
   >
     <img 
-    width="100"
-    height="100"
+    width="150"
+    height="150"
     src="logos/llvm.svg"
   >
     <img 
-    width="100"
-    height="100"
+    width="150"
+    height="150"
     src="logos/vscode.svg"
   >
 </p>
