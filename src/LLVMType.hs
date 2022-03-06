@@ -11,3 +11,6 @@ import LLVM.AST as AST
 
 int :: AST.Type
 int = IntegerType 32
+
+void :: AST.Type
+void = VoidType

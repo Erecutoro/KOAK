@@ -224,7 +224,7 @@ parseCall = Call <$> (parseStr <* parseChar '(') <*> parseSubCall <*> pure Empty
 ------------------------------------------------------------
 
 parseFuncArg :: Parser [Expr Undetermined]
-parseFuncArg =  ((:) <$> (parseSpace parseArguments <* parseSpace (parseChar ',')) <*> parseSubCall)
+parseFuncArg =  ((:) <$> (parseSpace parseArguments <* parseSpace (parseChar ',')) <*> parseFuncArg)
             <|> (\a -> [a]) <$> (parseSpace parseArguments <* parseSpace (parseChar ')'))
 
 parseFunc :: Parser (Expr Undetermined)

@@ -23,7 +23,7 @@ findSymbol name (SymTab (Varinfo (a, sinfo):as))
 
 setSymbolTable :: Expr Ctx -> SymbolTable -> Either Error SymbolTable 
 setSymbolTable (Func name args t _ _) (SymTab st ) = case getArgument args of
-    Right a -> Right (SymTab (Varinfo (name, FuncInfo Double a) : st)) 
+    Right a -> Right (SymTab (Varinfo (name, FuncInfo t a) : st)) 
     Left a -> Left a
 setSymbolTable (BinOp (Var name none Custom _) Eq _ (BinOpCtx t)) (SymTab st ) = Right (SymTab (Varinfo (name, BinOpInfo t): st) )
 setSymbolTable _ st = Right st

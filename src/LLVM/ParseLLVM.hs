@@ -21,7 +21,7 @@ parseArgs (x:xs) = case x of
     Var n v t a -> case t of
         Data.Int -> Parameter int (mkName n) [] : parseArgs xs
         Data.Double -> Parameter double (mkName n) [] : parseArgs xs
-        _ -> []
+        _ -> Parameter LLVMType.void (mkName n) [] : parseArgs xs
     _ -> []
 
 llvmFloat :: String -> F.SomeFloat
