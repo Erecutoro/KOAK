@@ -50,7 +50,7 @@ You will need to install [Stack](https://docs.haskellstack.org/en/stable/README/
 ## Build
 
 ```
-$> git clone https://github.com/guerlBlanchard/KOAK_Parser.git
+$> git clone https://github.com/Erecutoro/KOAK.git
 $> make
 $> make tests_run (for unit tests)
 ```
